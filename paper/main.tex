@@ -1,0 +1,39 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{references.bib}
+\graphicspath{{figures/}}
+
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\title{Nutzt eine Spurerkennung benachbarte Fahrbahnmarkierungen?\\
+\large Verdeckungsexperimente und Grad-CAM vs.\ HiResCAM an UFLDv2}
+\author{Brisild Capani\\DHBW -- Explainable AI}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\todo{Zum Schluss schreiben: Frage, Methode, wichtigstes Ergebnis, Folgerung.}
+\end{abstract}
+
+\input{sections/01_einleitung}
+\input{sections/02_related_work}
+\input{sections/03_methode}
+\input{sections/04_experimente}
+\input{sections/05_ergebnisse}
+\input{sections/06_limitations}
+\input{sections/07_fazit}
+
+\printbibliography
+\end{document}

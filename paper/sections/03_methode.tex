@@ -1,0 +1,10 @@
+\section{Methode}
+\label{sec:methode}
+\subsection{Modell}
+\todo{UFLDv2 mit ResNet-„9“ \cite{he2016resnet} ([1,1,1,1] BasicBlocks), Eingabe $512\times384$, layer4 $12\times16$, $1\times1$-Conv $512\to8$, Flatten, MLP; Ausgaben loc\_row/loc\_col/exist\_row/exist\_col. Kein Global Average Pooling.}
+\subsection{Verdeckungsbedingungen}
+\todo{A Baseline, B Ziel verdeckt, C Ziel + Nachbarn in gleichen Zeilen, D Ziel verdeckt + Nachbarn entfernt, E nur Nachbarn, F gleich große leere Fahrbahn. Füllung: Fahrbahngrau / Inpainting, Schwarz als Ablation.}
+\subsection{Erklärungsverfahren}
+\todo{Grad-CAM vs.\ HiResCAM; warum HiResCAM ohne GAP treuer sein sollte \cite{draelos2020hirescam}. Targets: Existenz-Margin und Logit der argmax-Zelle.}
+\subsection{Metriken}
+\todo{Existenz-/Positionsänderung, Regionenanteil der CAM, Spearman-Korrelation, Deletion/Insertion, Randomisierungstest.}
