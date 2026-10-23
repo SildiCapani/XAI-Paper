@@ -1,9 +1,9 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper,twocolumn]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[ngerman]{babel}
 \usepackage{lmodern}
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=2cm,columnsep=0.8cm]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -17,15 +17,27 @@
 
 \title{Nutzt eine Spurerkennung benachbarte Fahrbahnmarkierungen?\\
 \large Verdeckungsexperimente und Grad-CAM vs.\ HiResCAM an UFLDv2}
-\author{Brisild Capani\\DHBW -- Explainable AI}
+\author{%
+  Brisild Capani\\
+  \normalsize Duale Hochschule Baden-Württemberg Stuttgart\\
+  \normalsize DHBW Smart Rollerz\\
+  \normalsize\href{mailto:sildi.capani@gmail.com}{sildi.capani@gmail.com}\\[2pt]
+  \small Matrikelnummer: \todo{Matrikelnr.} \quad Kurs: \todo{Kurs}\\
+  \small Modul: Explainable AI \quad Betreuung: \todo{Dozent/in}%
+}
 \date{\today}
 
 \begin{document}
-\maketitle
-
-\begin{abstract}
-\todo{Zum Schluss schreiben: Frage, Methode, wichtigstes Ergebnis, Folgerung.}
-\end{abstract}
+% Titel und Abstract über beide Spalten, danach zweispaltig
+\twocolumn[%
+  \begin{@twocolumnfalse}
+    \maketitle
+    \begin{abstract}
+      \todo{Zum Schluss schreiben: Frage, Methode, wichtigstes Ergebnis, Folgerung.}
+    \end{abstract}
+    \vspace{1.5em}
+  \end{@twocolumnfalse}
+]
 
 \input{sections/01_einleitung}
 \input{sections/02_related_work}
