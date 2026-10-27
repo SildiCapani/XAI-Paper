@@ -1,7 +1,8 @@
 # XAI-Paper: Nutzt die Spurerkennung benachbarte Markierungen?
 
 Paper für das Explainable-AI-Modul. Untersucht wird die UFLDv2-Spurerkennung des
-DHBW-Smart-Rollerz-Teams (BEV-Modell 2026, ResNet-„9“, Eingabe 512×384):
+DHBW-Smart-Rollerz-Teams (ResNet-„9“; Standard `best_model_bev.pth` mit Eingabe 128×96,
+Vergleich `best_model_bev_2026.pth` mit 512×384, Auswahl per `--model bev|bev_2026`):
 Nutzt das Modell benachbarte Fahrbahnmarkierungen, um eine teilweise verdeckte
 Linie zu erkennen?
 
@@ -14,7 +15,7 @@ HiResCAM, danach Abgleich der Erklärungen mit den Experimenten. Kein Neutrainin
 |---|---|
 | `src/xai_lane/` | eigener Code (Loader, Vorverarbeitung, Verdeckung, CAM, Analyse) |
 | `experiments/` | ausführbare Skripte/Notebooks, nummeriert nach Schritt |
-| `results/` | erzeugte Ausgaben (nicht im git, jederzeit reproduzierbar) |
+| `results/<modell>/` | erzeugte Ausgaben je Modell (nicht im git, jederzeit reproduzierbar) |
 | `paper/` | LaTeX-Paper (Deutsch), `paper/figures/` für ausgewählte Abbildungen |
 
 Modell, Config, Testbilder und Modellcode werden **nur lesend** per absolutem Pfad

@@ -16,12 +16,21 @@ LANE_DETECTION_ROOT = Path(
 )
 
 MODEL_DIR = LANE_DETECTION_ROOT / "models"
-MODEL_PATH = MODEL_DIR / "best_model_bev_2026.pth"
-MODEL_CONFIG_PATH = MODEL_DIR / "best_model_bev_2026_config.py"
+# Name -> (Gewichte, Config). Auswahl per --model oder XAI_MODEL.
+MODELS = {
+    "bev": (MODEL_DIR / "best_model_bev.pth", LANE_DETECTION_ROOT / "config/model_bev_config.py"),
+    "bev_2026": (MODEL_DIR / "best_model_bev_2026.pth", MODEL_DIR / "best_model_bev_2026_config.py"),
+}
+DEFAULT_MODEL = os.environ.get("XAI_MODEL", "bev")
 TEST_IMAGE_DIR = MODEL_DIR / "eval_2025-03-06"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RESULTS_DIR = PROJECT_ROOT / "results"
+RESULTS_ROOT = PROJECT_ROOT / "results"
+
+
+def results_dir(model: str) -> Path:
+    """Ergebnisse je Modell getrennt: results/<modell>/..."""
+    return RESULTS_ROOT / model
 FIGURES_DIR = PROJECT_ROOT / "paper" / "figures"
 
 
