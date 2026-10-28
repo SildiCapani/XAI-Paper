@@ -73,6 +73,8 @@ def main() -> None:
     out_dir = paths.results_dir(args.model) / "01_first_look"
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"frame{args.frame:05d}_T{T}_N{N}_{args.fill}_{args.layer}"
+    if tuple(args.span) != (0.35, 0.65):  # nur abweichende Bereiche im Namen, Standardnamen bleiben gleich
+        stem += f"_span{args.span[0] * 100:.0f}-{args.span[1] * 100:.0f}"
     fig, axes = plt.subplots(2, 5, figsize=(20, 7.5))
     for ax, (name, img) in zip(axes[0], res.imgs.items()):
         ax.imshow(img)

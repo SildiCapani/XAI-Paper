@@ -1,0 +1,919 @@
+diff --git a/configs/smartrollerz_bev2026_ft_kontrolle.py b/configs/smartrollerz_bev2026_ft_kontrolle.py
+new file mode 100644
+index 0000000..0bbfefc
+--- /dev/null
++++ b/configs/smartrollerz_bev2026_ft_kontrolle.py
+@@ -0,0 +1,115 @@
++dataset = "Smartrollerz"
++data_root = "dataset/smartrollerz_bev"  # Need to be modified before running
++epoch = 250 # 250
++batch_size = 32
++optimizer = "Adam"
++learning_rate = 0.0006188572865938497 # 0.00625
++weight_decay = 1.3115725431514786e-06
++momentum = 0.9051601210183182
++scheduler = "multi"
++steps = [100, 150]
++gamma = 0.1
++warmup = "linear"
++warmup_iters = 100
++use_aux = False
++griding_num = 200
++backbone = "9"
++sim_loss_w = 0.0
++shp_loss_w = 0.0
++note = ""
++log_path = "logs"
++finetune = None
++resume = None
++test_model = ""
++test_work_dir = ""
++tta = True
++num_lanes = 3
++var_loss_power = 2.0
++auto_backup = True
++num_row = 55
++num_col = 40
++train_width = 512  # 128 # 256 #512  # 2048  # 1024
++train_height = 384  # 96 # 192 #384  # 1536  # 768
++num_cell_row = 100
++num_cell_col = 100
++original_image_width = 1364
++original_image_height = 944
++# train_width = 2048  # 128 # 256 #512  # 2048  # 1024
++# train_height = 1536  # 96 # 192 #384  # 1536  # 768
++# num_cell_row = 400
++# num_cell_col = 400
++mean_loss_w = 0.05
++fc_norm = False
++mlp_mid_dim = 512
++soft_loss = True
++cls_loss_col_w = 1.0
++cls_ext_col_w = 1.0
++mean_loss_col_w = 0.05
++eval_mode = "normal"
++crop_ratio = 1.0
++# Augmentation parameters
++aug_translate_x = 150     # shift lanes out of the image # horizontally
++aug_translate_y = 30      # vertically
++aug_scale_min = 0.80
++aug_scale_max = 1.20
++aug_rotate_deg = 20.0   
++aug_brightness_min = 0.50
++aug_brightness_max = 1.50
++aug_contrast_min = 0.50
++aug_contrast_max = 1.50
++
++# Optimization target used by Lightning checkpoint callback
++best_metric = "val/local_f1"
++best_metric_mode = "max"
++
++# Optuna defaults (can still be overridden via CLI)
++optuna_n_trials = 30
++optuna_timeout = None
++optuna_study_name = "smartrollerz_lane_detection_optuna_study"
++optuna_direction = "maximize"
++optuna_sampler = "tpe"
++optuna_seed = 42
++optuna_pruner = "median"
++
++optuna_space = {
++    "learning_rate": {"type": "float", "low": 1e-4, "high": 2e-2, "log": True},
++    "weight_decay": {"type": "float", "low": 1e-6, "high": 1e-3, "log": True},
++    "batch_size": {"type": "categorical", "choices": [16, 24, 32]},
++    "optimizer": {"type": "categorical", "choices": ["SGD", "Adam"]},
++    "momentum": {"type": "float", "low": 0.85, "high": 0.99},
++}
++
++
++# --- Optuna sampled hyperparameters for reproducibility ---
++optuna_trial_number = 15
++optuna_sampled_params = {'learning_rate': 0.00037924161599401605, 'weight_decay': 3.0864677182563864e-05, 'batch_size': 32, 'optimizer': 'Adam', 'momentum': 0.9822902548759617}
++learning_rate = 0.00037924161599401605
++weight_decay = 3.0864677182563864e-05
++batch_size = 32
++optimizer = 'Adam'
++momentum = 0.9822902548759617
++
++
++# --- Optuna sampled hyperparameters for reproducibility ---
++optuna_trial_number = 23
++optuna_sampled_params = {'learning_rate': 0.0016797815820107967, 'weight_decay': 5.534850295730634e-06, 'batch_size': 32, 'optimizer': 'Adam', 'momentum': 0.9351940952142581}
++learning_rate = 0.0016797815820107967
++weight_decay = 5.534850295730634e-06
++batch_size = 32
++optimizer = 'Adam'
++momentum = 0.9351940952142581
++
++
++# --- Fine-Tuning ab best_model_bev_2026.pth (XAI-Paper, Linien-Verdeckung) ---
++# Zwei Läufe mit identischen Einstellungen, einziger Unterschied: aug_lane_occlusion_p
++#   smartrollerz_bev2026_ft_kontrolle.py   0.0 (nur die bisherige Augmentation)
++#   smartrollerz_bev2026_ft_verdeckung.py  0.5 (jedes zweite Bild: eine Linie gezielt verdeckt)
++finetune = "/app/configs/pretrained_models/best_model_bev_2026.pth"
++finetune_strict = True
++finetune_backbone_lr_scale = 0.3  # Backbone lernt mit 30 % der Lernrate, Kopf mit 100 %
++aug_lane_occlusion_p = 0.0
++seed = 42
++epoch = 40
++learning_rate = 3e-4
++steps = [25, 35]
++note = "_ft_kontrolle"
+diff --git a/configs/smartrollerz_bev2026_ft_verdeckung.py b/configs/smartrollerz_bev2026_ft_verdeckung.py
+new file mode 100644
+index 0000000..b7b61c2
+--- /dev/null
++++ b/configs/smartrollerz_bev2026_ft_verdeckung.py
+@@ -0,0 +1,115 @@
++dataset = "Smartrollerz"
++data_root = "dataset/smartrollerz_bev"  # Need to be modified before running
++epoch = 250 # 250
++batch_size = 32
++optimizer = "Adam"
++learning_rate = 0.0006188572865938497 # 0.00625
++weight_decay = 1.3115725431514786e-06
++momentum = 0.9051601210183182
++scheduler = "multi"
++steps = [100, 150]
++gamma = 0.1
++warmup = "linear"
++warmup_iters = 100
++use_aux = False
++griding_num = 200
++backbone = "9"
++sim_loss_w = 0.0
++shp_loss_w = 0.0
++note = ""
++log_path = "logs"
++finetune = None
++resume = None
++test_model = ""
++test_work_dir = ""
++tta = True
++num_lanes = 3
++var_loss_power = 2.0
++auto_backup = True
++num_row = 55
++num_col = 40
++train_width = 512  # 128 # 256 #512  # 2048  # 1024
++train_height = 384  # 96 # 192 #384  # 1536  # 768
++num_cell_row = 100
++num_cell_col = 100
++original_image_width = 1364
++original_image_height = 944
++# train_width = 2048  # 128 # 256 #512  # 2048  # 1024
++# train_height = 1536  # 96 # 192 #384  # 1536  # 768
++# num_cell_row = 400
++# num_cell_col = 400
++mean_loss_w = 0.05
++fc_norm = False
++mlp_mid_dim = 512
++soft_loss = True
++cls_loss_col_w = 1.0
++cls_ext_col_w = 1.0
++mean_loss_col_w = 0.05
++eval_mode = "normal"
++crop_ratio = 1.0
++# Augmentation parameters
++aug_translate_x = 150     # shift lanes out of the image # horizontally
++aug_translate_y = 30      # vertically
++aug_scale_min = 0.80
++aug_scale_max = 1.20
++aug_rotate_deg = 20.0   
++aug_brightness_min = 0.50
++aug_brightness_max = 1.50
++aug_contrast_min = 0.50
++aug_contrast_max = 1.50
++
++# Optimization target used by Lightning checkpoint callback
++best_metric = "val/local_f1"
++best_metric_mode = "max"
++
++# Optuna defaults (can still be overridden via CLI)
++optuna_n_trials = 30
++optuna_timeout = None
++optuna_study_name = "smartrollerz_lane_detection_optuna_study"
++optuna_direction = "maximize"
++optuna_sampler = "tpe"
++optuna_seed = 42
++optuna_pruner = "median"
++
++optuna_space = {
++    "learning_rate": {"type": "float", "low": 1e-4, "high": 2e-2, "log": True},
++    "weight_decay": {"type": "float", "low": 1e-6, "high": 1e-3, "log": True},
++    "batch_size": {"type": "categorical", "choices": [16, 24, 32]},
++    "optimizer": {"type": "categorical", "choices": ["SGD", "Adam"]},
++    "momentum": {"type": "float", "low": 0.85, "high": 0.99},
++}
++
++
++# --- Optuna sampled hyperparameters for reproducibility ---
++optuna_trial_number = 15
++optuna_sampled_params = {'learning_rate': 0.00037924161599401605, 'weight_decay': 3.0864677182563864e-05, 'batch_size': 32, 'optimizer': 'Adam', 'momentum': 0.9822902548759617}
++learning_rate = 0.00037924161599401605
++weight_decay = 3.0864677182563864e-05
++batch_size = 32
++optimizer = 'Adam'
++momentum = 0.9822902548759617
++
++
++# --- Optuna sampled hyperparameters for reproducibility ---
++optuna_trial_number = 23
++optuna_sampled_params = {'learning_rate': 0.0016797815820107967, 'weight_decay': 5.534850295730634e-06, 'batch_size': 32, 'optimizer': 'Adam', 'momentum': 0.9351940952142581}
++learning_rate = 0.0016797815820107967
++weight_decay = 5.534850295730634e-06
++batch_size = 32
++optimizer = 'Adam'
++momentum = 0.9351940952142581
++
++
++# --- Fine-Tuning ab best_model_bev_2026.pth (XAI-Paper, Linien-Verdeckung) ---
++# Zwei Läufe mit identischen Einstellungen, einziger Unterschied: aug_lane_occlusion_p
++#   smartrollerz_bev2026_ft_kontrolle.py   0.0 (nur die bisherige Augmentation)
++#   smartrollerz_bev2026_ft_verdeckung.py  0.5 (jedes zweite Bild: eine Linie gezielt verdeckt)
++finetune = "/app/configs/pretrained_models/best_model_bev_2026.pth"
++finetune_strict = True
++finetune_backbone_lr_scale = 0.3  # Backbone lernt mit 30 % der Lernrate, Kopf mit 100 %
++aug_lane_occlusion_p = 0.5
++seed = 42
++epoch = 40
++learning_rate = 3e-4
++steps = [25, 35]
++note = "_ft_verdeckung"
+diff --git a/data/dali_data.py b/data/dali_data.py
+index 0a4add9..e478c42 100644
+--- a/data/dali_data.py
++++ b/data/dali_data.py
+@@ -2,6 +2,7 @@ import json
+ import os
+ import random
+ import sys
++from concurrent.futures import ThreadPoolExecutor
+ 
+ import cv2
+ import numpy as np
+@@ -24,6 +25,8 @@ if os.path.exists(_my_interp_path):
+     
+ import my_interp
+ 
++from data.lane_occlusion import occlude_jpeg
++
+ 
+ def _infer_image_size_from_list(data_root, list_path):
+     """Infer original image size from the first valid sample in a train list file."""
+@@ -65,9 +68,15 @@ class LaneExternalIterator(object):
+         num_shards=None,
+         mode="train",
+         dataset_name=None,
++        lane_occlusion_p=0.0,
++        seed=None,
+     ):
+         assert mode in ["train", "test"]
+         self.mode = mode
++        # gezielte Linien-Verdeckung (data/lane_occlusion.py), nur im Trainings-Loader > 0
++        self.lane_occlusion_p = lane_occlusion_p
++        self.rng = np.random.default_rng(None if seed is None else seed + (shard_id or 0))
++        self.pool = ThreadPoolExecutor(max_workers=8) if lane_occlusion_p > 0 else None
+         self.path = path
+         self.list_path = list_path
+         self.batch_size = batch_size
+@@ -143,7 +152,11 @@ class LaneExternalIterator(object):
+ 
+             img_path = os.path.join(self.path, img_name)
+             with open(img_path, "rb") as f:
+-                images.append(np.frombuffer(f.read(), dtype=np.uint8))
++                jpeg = np.frombuffer(f.read(), dtype=np.uint8)
++            if self.pool is not None and self.rng.random() < self.lane_occlusion_p:
++                seed = int(self.rng.integers(2**31))
++                jpeg = self.pool.submit(occlude_jpeg, jpeg, self.cached_points[img_name], seed)
++            images.append(jpeg)
+ 
+             img_path = os.path.join(self.path, seg_name)
+             with open(img_path, "rb") as f:
+@@ -154,6 +167,7 @@ class LaneExternalIterator(object):
+ 
+             self.i = self.i + 1
+ 
++        images = [im.result() if hasattr(im, "result") else im for im in images]
+         return (images, seg_images, labels)
+ 
+     def _prepare_test_batch(self):
+@@ -415,6 +429,8 @@ class TrainCollect:
+         aug_brightness_max=1.3,
+         aug_contrast_min=0.7,
+         aug_contrast_max=1.3,
++        lane_occlusion_p=0.0,
++        seed=None,
+     ):
+         eii = LaneExternalIterator(
+             data_root,
+@@ -423,6 +439,8 @@ class TrainCollect:
+             shard_id=shard_id,
+             num_shards=num_shards,
+             dataset_name=dataset_name,
++            lane_occlusion_p=lane_occlusion_p,
++            seed=seed,
+         )
+ 
+         if original_image_width is not None and original_image_height is not None:
+diff --git a/data/lane_occlusion.py b/data/lane_occlusion.py
+new file mode 100644
+index 0000000..affdd5c
+--- /dev/null
++++ b/data/lane_occlusion.py
+@@ -0,0 +1,168 @@
++"""Gezielte Verdeckung von Fahrbahnmarkierungen (Augmentation und Auswertung).
++
++Die Linien kommen aus dem Label-Cache (smartrollerz_anno_cache.json): je Bild
++eine Liste von Spuren, jede Spur eine Liste von (x, y)-Punkten in Original-
++Bildkoordinaten, x = -99999 wo die Spur fehlt. Übermalt wird ein Streifen
++entlang der Label-Linie, die Labels selbst bleiben unverändert: das Modell soll
++lernen, eine Linie auch dann zu finden, wenn sie (teilweise) nicht zu sehen ist.
++
++Arten der Verdeckung (wie die Bedingungen im XAI-Experiment):
++  stueck          ein zusammenhängendes Stück einer Linie
++  linie           eine ganze Linie
++  stueck_nachbar  ein Stück einer Linie und die ganze Nachbarlinie
++Füllungen:
++  verwischen  Umgebung stark weichgezeichnet hineingezogen (glatter Asphalt)
++  grau        Median der Umgebung
++  blendung    Linie glatt übermalt, darüber unregelmäßige helle Flecken (Lichtreflex);
++              die Flecken folgen der Linie nur grob, damit das Modell nicht lernt,
++              einfach einem hellen Band zu folgen
++  inpaint     cv2.inpaint (Telea), nur zur Auswertung: im Training nicht benutzt,
++              damit getestet werden kann, ob das Modell auch unbekannte Füllungen verkraftet
++"""
++
++import cv2
++import numpy as np
++
++MODES = ("stueck", "linie", "stueck_nachbar")
++MODE_P = (0.5, 0.25, 0.25)
++TRAIN_FILLS = ("verwischen", "grau", "blendung")
++TRAIN_FILL_P = (0.4, 0.2, 0.4)
++
++
++def lane_points(lane, h: int, w: int) -> np.ndarray:
++    """Gültige Punkte einer Spur als (n, 2)-Array, nach y sortiert."""
++    pts = np.asarray(lane, dtype=np.float32).reshape(-1, 2)
++    ok = (pts[:, 0] >= 0) & (pts[:, 0] < w) & (pts[:, 1] >= 0) & (pts[:, 1] < h)
++    pts = pts[ok]
++    return pts[np.argsort(pts[:, 1])]
++
++
++def default_thickness(w: int) -> int:
++    """Streifenbreite: 14 px bei 512 px Bildbreite (wie im XAI-Experiment), proportional."""
++    return max(3, round(14 * w / 512))
++
++
++def polyline_mask(pts: np.ndarray, shape, thickness: int) -> np.ndarray:
++    mask = np.zeros(shape, np.uint8)
++    if len(pts) >= 2:
++        cv2.polylines(mask, [np.round(pts).astype(np.int32)], False, 1, thickness)
++    return mask.astype(bool)
++
++
++def segment(pts: np.ndarray, y0: float, y1: float) -> np.ndarray:
++    return pts[(pts[:, 1] >= y0) & (pts[:, 1] <= y1)]
++
++
++def _blur_small(a: np.ndarray, sigma: float, factor: int = 4) -> np.ndarray:
++    """Gauß-Weichzeichnung auf verkleinertem Bild (schnell bei großem sigma)."""
++    h, w = a.shape[:2]
++    small = cv2.resize(a, (max(1, w // factor), max(1, h // factor)), interpolation=cv2.INTER_AREA)
++    small = cv2.GaussianBlur(small, (0, 0), sigmaX=max(0.5, sigma / factor))
++    return cv2.resize(small, (w, h), interpolation=cv2.INTER_LINEAR)
++
++
++def _smooth_fill(img: np.ndarray, mask: np.ndarray, ring: int) -> np.ndarray:
++    """Normierte Faltung: nur Pixel außerhalb der Maske tragen zum Füllwert bei."""
++    keep = (~mask).astype(np.float32)
++    f = img.astype(np.float32)
++    num = _blur_small(f * (keep[..., None] if f.ndim == 3 else keep), ring)
++    den = _blur_small(keep, ring)
++    if f.ndim == 3:
++        den = den[..., None]
++    out = img.copy()
++    out[mask] = np.clip((num / np.maximum(den, 1e-3))[mask], 0, 255).astype(np.uint8)
++    return out
++
++
++def _glare(img: np.ndarray, mask: np.ndarray, ring: int, rng: np.random.Generator) -> np.ndarray:
++    out = _smooth_fill(img, mask, ring)
++    ys, xs = np.nonzero(mask)
++    if len(ys) == 0:
++        return out
++    h, w = mask.shape
++    blobs = np.zeros((h, w), np.float32)
++    # Flecken entlang der Maske, seitlich versetzt und unterschiedlich groß
++    n = int(np.clip((ys.max() - ys.min()) / (3 * ring), 1, 8))
++    for i in rng.choice(len(ys), n, replace=False if len(ys) >= n else True):
++        r = ring * rng.uniform(1.5, 4.0)
++        cx = xs[i] + rng.uniform(-1, 1) * r
++        cy = ys[i] + rng.uniform(-0.5, 0.5) * r
++        axes = (int(r * rng.uniform(0.6, 1.4)), int(r * rng.uniform(0.6, 1.4)))
++        cv2.ellipse(blobs, (int(cx), int(cy)), axes, rng.uniform(0, 180), 0, 360, 1.0, -1)
++    soft = np.clip(_blur_small(blobs, ring) * rng.uniform(1.0, 1.8), 0, 1)
++    if img.ndim == 3:
++        soft = soft[..., None]
++    return (out * (1 - soft) + rng.uniform(215, 250) * soft).astype(np.uint8)
++
++
++def fill(img: np.ndarray, mask: np.ndarray, method: str, ring: int, rng: np.random.Generator | None = None) -> np.ndarray:
++    """Übermalt die Pixel unter mask. img: uint8 (H, W) oder (H, W, 3)."""
++    if not mask.any():
++        return img
++    out = img.copy()
++    m8 = mask.astype(np.uint8)
++    if method == "verwischen":
++        out = _smooth_fill(img, mask, ring)
++    elif method == "grau":
++        ringm = cv2.dilate(m8, np.ones((2 * ring + 1, 2 * ring + 1), np.uint8)).astype(bool) & ~mask
++        gray = img if img.ndim == 2 else img[..., 0]
++        vals = img[ringm & (gray > 5)]
++        out[mask] = np.median(vals, axis=0) if len(vals) else 0
++    elif method == "blendung":
++        out = _glare(img, mask, ring, rng if rng is not None else np.random.default_rng(0))
++    elif method == "inpaint":
++        out = cv2.inpaint(img, m8, max(2, ring // 3), cv2.INPAINT_TELEA)
++    else:
++        raise ValueError(method)
++    return out
++
++
++def occlusion_mask(lanes, shape, mode: str, target: int, neighbor: int | None,
++                   y_range: tuple[float, float] | None, thickness: int) -> np.ndarray:
++    """Maske für eine Verdeckungsart. y_range: verdeckter Bereich von target (Pixel)."""
++    h, w = shape
++    pts = [lane_points(l, h, w) for l in lanes]
++    t = pts[target]
++    if mode == "linie":
++        return polyline_mask(t, shape, thickness)
++    mask = polyline_mask(segment(t, *y_range), shape, thickness)
++    if mode == "stueck_nachbar" and neighbor is not None:
++        mask |= polyline_mask(pts[neighbor], shape, thickness)
++    return mask
++
++
++def random_occlusion(img: np.ndarray, lanes, rng: np.random.Generator) -> np.ndarray:
++    """Eine zufällige Verdeckung für das Training. Gibt das Bild unverändert zurück,
++    wenn keine Spur genug Punkte hat."""
++    h, w = img.shape[:2]
++    pts = [lane_points(l, h, w) for l in lanes]
++    present = [i for i, p in enumerate(pts) if len(p) >= 2]
++    if not present:
++        return img
++    target = int(rng.choice(present))
++    mode = MODES[rng.choice(len(MODES), p=MODE_P)]
++    neighbors = [n for n in (target - 1, target + 1) if n in present]
++    if mode == "stueck_nachbar" and not neighbors:
++        mode = "stueck"
++    neighbor = int(rng.choice(neighbors)) if neighbors else None
++
++    ys = pts[target][:, 1]
++    lo, hi = float(ys.min()), float(ys.max())
++    length = (hi - lo) * rng.uniform(0.2, 0.7)
++    start = rng.uniform(lo, hi - length)
++    # Breite leicht variieren, damit das Modell nicht die Maskenform lernt
++    thickness = max(3, int(default_thickness(w) * rng.uniform(0.8, 1.4)))
++    mask = occlusion_mask(lanes, (h, w), mode, target, neighbor, (start, start + length), thickness)
++    method = TRAIN_FILLS[rng.choice(len(TRAIN_FILLS), p=TRAIN_FILL_P)]
++    return fill(img, mask, method, ring=thickness + 1, rng=rng)
++
++
++def occlude_jpeg(jpeg: bytes | np.ndarray, lanes, seed: int, quality: int = 95) -> np.ndarray:
++    """Für den DALI-Iterator: kodiertes Bild rein, verdecktes kodiertes Bild raus.
++    Eigener Seed je Bild, damit mehrere Threads parallel arbeiten können."""
++    img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_UNCHANGED)
++    out = random_occlusion(img, lanes, np.random.default_rng(seed))
++    ok, enc = cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, quality])
++    if not ok:
++        return np.frombuffer(jpeg, np.uint8)
++    return enc.reshape(-1)
+diff --git a/eval_verdeckung.py b/eval_verdeckung.py
+new file mode 100644
+index 0000000..13b990b
+--- /dev/null
++++ b/eval_verdeckung.py
+@@ -0,0 +1,259 @@
++"""Vergleicht Modelle auf den Validierungsbildern: sauber und mit gezielt verdeckten Linien.
++
++Gemessen wird gegen die echten Labels (labels/smartrollerz_anno_cache.json) an den
++Zeilenankern. Die Verdeckung kommt aus data/lane_occlusion.py und ist je Bild fest
++(gleicher Seed für alle Modelle), die Labels bleiben unverändert.
++
++Bedingungen (T = verdeckte Linie, N = Nachbar):
++  sauber              Originalbild, alle Linien, alle Anker
++  A_stueck            mittleres Drittel von T übermalt (verwischen)
++  A_stueck_inpaint    dasselbe mit cv2.inpaint – diese Füllung kommt im Training nicht vor
++  A_stueck_blendung   dasselbe mit Blendung
++  B_stueck_nachbar    mittleres Drittel von T und die ganze Linie N übermalt
++  C_linie             die ganze Linie T übermalt
++Ausgewertet wird T nur an den verdeckten Ankern (bei "sauber": jede Linie an allen Ankern).
++
++Je Anker mit Label:
++  treffer      Vorhersage vorhanden und höchstens --tol px daneben (Team-F1 nutzt 20 px)
++  verloren     keine Vorhersage (exist_row sagt "keine Linie")
++  verwechselt  Vorhersage liegt näher an einer anderen gelabelten Linie als an T
++  P_exist      mittlere Sicherheit des Modells, dass T dort existiert
++Bei "sauber" zusätzlich: falsch_positiv = Anteil der Anker ohne Label für diese Linie,
++an denen trotzdem eine vorhergesagt wird (über alle Bilder summiert).
++
++Aufruf (im Container, Projekt unter /app):
++  python3 eval_verdeckung.py configs/smartrollerz_bev2026_ft_verdeckung.py \\
++      --weights basis=configs/pretrained_models/best_model_bev_2026.pth \\
++                kontrolle=results/<lauf_kontrolle>/best_weights.pth \\
++                verdeckung=results/<lauf_verdeckung>/best_weights.pth \\
++      --data_root /app/dataset/smartrollerz_bev --out results/eval_verdeckung
++  Nur Vorschau der Trainings-Augmentation (ohne Modell):
++  python3 eval_verdeckung.py configs/... --data_root ... --out ... --vorschau 30
++"""
++
++import argparse
++import json
++import os
++
++import cv2
++import numpy as np
++import pandas as pd
++import torch
++
++from data.lane_occlusion import default_thickness, fill, lane_points, occlusion_mask, random_occlusion
++from utils.config import Config
++from utils.weights import load_parsingnet_weights
++
++MEAN = np.array([0.485, 0.456, 0.406], np.float32) * 255
++STD = np.array([0.229, 0.224, 0.225], np.float32) * 255
++COLORS = [(255, 120, 30), (40, 160, 40), (40, 40, 214)]  # BGR: links, Mitte, rechts
++
++
++def gt_at_anchors(lanes, ys, h, w) -> np.ndarray:
++    """x des Labels an den Zeilenankern, (num_lanes, num_row), NaN ohne Label.
++    Wie im Training (TrainCollect._extend) wird eine Linie, die vor dem unteren
++    Bildrand endet, linear nach unten verlängert."""
++    out = np.full((len(lanes), len(ys)), np.nan)
++    for i, lane in enumerate(lanes):
++        p = lane_points(lane, h, w)
++        if len(p) < 2:
++            continue
++        inside = (ys >= p[0, 1]) & (ys <= p[-1, 1])
++        out[i, inside] = np.interp(ys[inside], p[:, 1], p[:, 0])
++        valid = np.flatnonzero(~np.isnan(out[i]))
++        if len(valid) >= 6 and np.isnan(out[i, -1]):
++            half = valid[len(valid) // 2:]
++            k = np.polyfit(half, out[i, half], 1)
++            rest = np.arange(valid[-1] + 1, len(ys))
++            x = np.polyval(k, rest)
++            x[(x < 0) | (x > w)] = np.nan
++            out[i, rest] = x
++    return out
++
++
++def to_input(img_bgr: np.ndarray, cfg) -> np.ndarray:
++    """Wie die DALI-Pipeline: RGB, Resize auf Trainingsgröße, ImageNet-Normierung."""
++    rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
++    rgb = cv2.resize(rgb, (cfg.train_width, cfg.train_height), interpolation=cv2.INTER_AREA)
++    return np.ascontiguousarray(((rgb.astype(np.float32) - MEAN) / STD).transpose(2, 0, 1))
++
++
++@torch.no_grad()
++def predict(net, batch: np.ndarray, w: int):
++    """x-Positionen in Originalpixeln (n, num_lanes, num_row), NaN wo keine Linie, und P(exist)."""
++    out = net(torch.from_numpy(batch).cuda())
++    loc = out["loc_row"]  # (n, grid, num_row, lanes)
++    grid = loc.shape[1]
++    best = loc.argmax(1, keepdim=True)
++    idx = (best + torch.arange(-1, 2, device=loc.device).view(1, 3, 1, 1)).clamp(0, grid - 1)
++    x = (loc.gather(1, idx).softmax(1) * idx.float()).sum(1) + 0.5  # wie pred2coords
++    x = (x / (grid - 1) * w).permute(0, 2, 1).cpu().numpy()
++    p = out["exist_row"].softmax(1)[:, 1].permute(0, 2, 1).cpu().numpy()
++    x[p < 0.5] = np.nan
++    return x, p
++
++
++def conditions(lanes, gt, ys, shape, thickness):
++    """(Name, T, N, Maske, Füllung, Anker-Auswahl) je Bedingung."""
++    out = []
++    present = [i for i in range(len(gt)) if np.sum(~np.isnan(gt[i])) >= 6]
++    for t in present:
++        valid = np.flatnonzero(~np.isnan(gt[t]))
++        lo, hi = valid[0], valid[-1]
++        mid = np.arange(lo + (hi - lo) // 3, lo + 2 * (hi - lo) // 3 + 1)
++        mid = mid[~np.isnan(gt[t, mid])]
++        y_range = (ys[mid[0]], ys[mid[-1]])
++        stueck = occlusion_mask(lanes, shape, "stueck", t, None, y_range, thickness)
++        out += [("A_stueck", t, -1, stueck, "verwischen", mid),
++                ("A_stueck_inpaint", t, -1, stueck, "inpaint", mid),
++                ("A_stueck_blendung", t, -1, stueck, "blendung", mid),
++                ("C_linie", t, -1, occlusion_mask(lanes, shape, "linie", t, None, None, thickness), "verwischen", valid)]
++        for n in (t - 1, t + 1):
++            if n in present:
++                m = occlusion_mask(lanes, shape, "stueck_nachbar", t, n, y_range, thickness)
++                out.append(("B_stueck_nachbar", t, n, m, "verwischen", mid))
++    return out
++
++
++def score(x, p, gt, t, anchors, tol):
++    xt, g = x[t, anchors], gt[t, anchors]
++    has = ~np.isnan(g)
++    xt, g, anchors = xt[has], g[has], anchors[has]
++    err = np.abs(xt - g)
++    others = [k for k in range(len(gt)) if k != t]
++    d_other = np.nanmin(np.abs(xt[None] - gt[others][:, anchors]), axis=0) if others else np.full(len(xt), np.inf)
++    with np.errstate(invalid="ignore"):
++        return {
++            "n_anker": int(has.sum()),
++            "treffer": int(np.sum(err <= tol)),
++            "verloren": int(np.isnan(xt).sum()),
++            "verwechselt": int(np.sum((d_other < err) & (err > tol))),
++            "fehler_px_mittel": float(np.nanmean(err)) if not np.isnan(err).all() else np.nan,
++            "P_exist": float(p[t, anchors].mean()),
++        }
++
++
++def draw(img, gt, x, ys, mask=None):
++    vis = img.copy() if img.ndim == 3 else cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
++    if mask is not None:
++        cnt, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
++        cv2.drawContours(vis, cnt, -1, (255, 0, 255), 2)
++    for lane in range(len(gt)):
++        for k, y in enumerate(ys):
++            if not np.isnan(gt[lane, k]):
++                cv2.drawMarker(vis, (int(gt[lane, k]), int(y)), (255, 255, 255), cv2.MARKER_TILTED_CROSS, 12, 2)
++            if x is not None and not np.isnan(x[lane, k]):
++                cv2.circle(vis, (int(x[lane, k]), int(y)), 6, COLORS[lane % 3], -1)
++    return vis
++
++
++def main():
++    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
++    ap.add_argument("config")
++    ap.add_argument("--weights", nargs="+", default=[], help="name=pfad, mehrere Modelle möglich")
++    ap.add_argument("--data_root", required=True)
++    ap.add_argument("--list", default="labels/eval_gt.txt", help="relativ zu data_root")
++    ap.add_argument("--out", required=True)
++    ap.add_argument("--tol", type=float, default=20.0, help="Treffer-Toleranz in Originalpixeln")
++    ap.add_argument("--max_images", type=int)
++    ap.add_argument("--bilder", type=int, default=6, help="für so viele Bilder Abbildungen aller Bedingungen speichern")
++    ap.add_argument("--vorschau", type=int, help="nur N Bilder mit zufälliger Trainings-Verdeckung + Labels speichern")
++    args = ap.parse_args()
++
++    cfg = Config.fromfile(args.config)
++    cfg.dataset = "Smartrollerz"
++    cfg.row_anchor = np.linspace(100, 1540, cfg.num_row) / 1550  # wie utils.common.merge_config
++    cfg.col_anchor = np.linspace(0, 1, cfg.num_col)
++    os.makedirs(args.out, exist_ok=True)
++    with open(os.path.join(args.data_root, "labels", "smartrollerz_anno_cache.json")) as f:
++        cache = json.load(f)
++    with open(os.path.join(args.data_root, args.list)) as f:
++        names = [l.split()[0].lstrip("/") for l in f if l.strip()]
++    names = [n for n in names if n in cache][: args.max_images]
++    print(f"{len(names)} Bilder aus {args.list} mit Labels")
++
++    if args.vorschau:
++        rng = np.random.default_rng(0)
++        for i, name in enumerate(names[: args.vorschau]):
++            img = cv2.imread(os.path.join(args.data_root, name), cv2.IMREAD_UNCHANGED)
++            h, w = img.shape[:2]
++            ys = cfg.row_anchor * h
++            gt = gt_at_anchors(cache[name], ys, h, w)
++            occ = random_occlusion(img, cache[name], rng)
++            occ = occ if occ.ndim == 3 else cv2.cvtColor(occ, cv2.COLOR_GRAY2BGR)
++            three = np.hstack([draw(img, gt, None, ys), draw(occ, gt, None, ys), occ])
++            cv2.imwrite(os.path.join(args.out, f"vorschau_{i:03d}.jpg"), cv2.resize(three, None, fx=0.4, fy=0.4))
++        print(f"Vorschau in {args.out}: Original mit Labels (weiße Kreuze) | verdeckt mit Labels | verdeckt")
++        return
++
++    from utils.common import get_model  # erst hier: braucht DALI und GPU
++    nets = {}
++    for spec in args.weights:
++        name, path = spec.split("=", 1)
++        net = get_model(cfg)
++        net = getattr(net, "module", net)
++        loaded, total, unexpected = load_parsingnet_weights(net, path, strict=True)
++        print(f"{name}: {loaded}/{total} Tensoren aus {path}")
++        nets[name] = net.cuda().eval()
++
++    rows = []
++    for i, name in enumerate(names):
++        img = cv2.imread(os.path.join(args.data_root, name), cv2.IMREAD_COLOR)
++        h, w = img.shape[:2]
++        ys = cfg.row_anchor * h
++        gt = gt_at_anchors(cache[name], ys, h, w)
++        thickness = default_thickness(w)
++        seed = int.from_bytes(name.encode()[-8:], "little") % 2**31  # fest je Bild
++        conds = conditions(cache[name], gt, ys, (h, w), thickness)
++        imgs = [img] + [fill(img, m, method, thickness + 1, np.random.default_rng(seed))
++                        for _, _, _, m, method, _ in conds]
++        batch = np.stack([to_input(im, cfg) for im in imgs])
++        for model, net in nets.items():
++            xs, ps = [], []
++            for s in range(0, len(batch), 32):
++                x, p = predict(net, batch[s:s + 32], w)
++                xs.append(x), ps.append(p)
++            x, p = np.concatenate(xs), np.concatenate(ps)
++            all_k = np.arange(len(ys))
++            for t in range(len(gt)):
++                if np.isnan(gt[t]).all():
++                    continue
++                r = score(x[0], p[0], gt, t, all_k, args.tol)
++                no_gt = np.isnan(gt[t])
++                r["kein_label"] = int(no_gt.sum())
++                r["falsch_positiv"] = int(np.sum(~np.isnan(x[0, t, no_gt])))
++                rows.append({"Modell": model, "Bild": name, "Bedingung": "sauber", "T": t, "N": -1, **r})
++            for j, (cond, t, n, _, _, anchors) in enumerate(conds, start=1):
++                rows.append({"Modell": model, "Bild": name, "Bedingung": cond, "T": t, "N": n,
++                             **score(x[j], p[j], gt, t, anchors, args.tol)})
++            if i < args.bilder:
++                tiles = [draw(imgs[0], gt, x[0], ys)]
++                tiles += [draw(imgs[j], gt, x[j], ys, conds[j - 1][3]) for j in range(1, len(imgs))]
++                for tile, label in zip(tiles, ["sauber"] + [f"{c[0]} T{c[1]}" for c in conds]):
++                    cv2.putText(tile, label, (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
++                tiles += [np.zeros_like(tiles[0])] * (-len(tiles) % 4)
++                sheet = np.vstack([np.hstack(tiles[k:k + 4]) for k in range(0, len(tiles), 4)])
++                cv2.imwrite(os.path.join(args.out, f"bild{i:03d}_{model}.jpg"), cv2.resize(sheet, None, fx=0.4, fy=0.4))
++        if i % 50 == 0:
++            print(f"[{i + 1}/{len(names)}] {name}", flush=True)
++
++    df = pd.DataFrame(rows)
++    df.to_csv(os.path.join(args.out, "ergebnisse_je_bild.csv"), index=False)
++    g = df.groupby(["Bedingung", "Modell"], sort=False)
++    summary = pd.DataFrame({
++        "treffer_%": 100 * g.treffer.sum() / g.n_anker.sum(),
++        "verloren_%": 100 * g.verloren.sum() / g.n_anker.sum(),
++        "verwechselt_%": 100 * g.verwechselt.sum() / g.n_anker.sum(),
++        "fehler_px_median": g.fehler_px_mittel.median(),
++        "P_exist": g.P_exist.mean(),
++        "falsch_positiv_%": 100 * g.falsch_positiv.sum() / g.kein_label.sum().replace(0, np.nan),
++        "n_faelle": g.size(),
++    }).round(2)
++    summary.to_csv(os.path.join(args.out, "zusammenfassung.csv"))
++    pd.set_option("display.width", 200)
++    print(summary.to_string())
++    print(f"\nErgebnisse in {args.out}")
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/lightning/module.py b/lightning/module.py
+index ec3117a..75c2b10 100644
+--- a/lightning/module.py
++++ b/lightning/module.py
+@@ -16,6 +16,7 @@ from utils.factory import (
+ )
+ from utils.metrics import reset_metrics, update_metrics
+ from utils.smartrollerz_metric import UFLDV2F1Score
++from utils.weights import load_parsingnet_weights
+ from evaluation.eval_wrapper import eval_lane
+ 
+ 
+@@ -93,9 +94,10 @@ class LaneDetectionLightningModule(pl.LightningModule):
+ 
+     def _load_finetune_weights(self, ckpt_path: str) -> None:
+         dist_print("[Lightning] Finetune from", ckpt_path)
+-        state_all = torch.load(ckpt_path, map_location="cpu").get("model", {})
+-        state_clip = {k: v for k, v in state_all.items() if "model" in k}
+-        self.model.load_state_dict(state_clip, strict=False)
++        strict = getattr(self.cfg, "finetune_strict", None)
++        loaded, total, unexpected = load_parsingnet_weights(
++            self.model, ckpt_path, strict=True if strict is None else bool(strict))
++        dist_print(f"[Lightning] Finetune: {loaded}/{total} Tensoren geladen, {unexpected} unerwartet")
+ 
+     def _load_resume_weights(self, ckpt_path: str) -> None:
+         dist_print("[Lightning] Resume weights from", ckpt_path)
+diff --git a/linien_verdeckung.slurm b/linien_verdeckung.slurm
+new file mode 100644
+index 0000000..a602e87
+--- /dev/null
++++ b/linien_verdeckung.slurm
+@@ -0,0 +1,79 @@
++#!/bin/bash
++
++#SBATCH --job-name=linien_verdeckung   # beim Aufruf mit --job-name=<USERNAME>_... überschreiben (Pflicht-Nomenklatur)
++#SBATCH --partition=debug
++#SBATCH --gres=gpu:user:1
++#SBATCH --cpus-per-task=24
++#SBATCH --mem=128G
++#SBATCH --time=08:00:00
++#SBATCH --output=slurm-outs/slurm-%j.out
++
++# Fine-Tuning ab best_model_bev_2026.pth mit gezielter Linien-Verdeckung (XAI-Paper).
++# Ein Skript für alle Schritte, Auswahl über MODE:
++#   sbatch --job-name=${USER}_vorschau   --export=ALL,MODE=vorschau   linien_verdeckung.slurm
++#   sbatch --job-name=${USER}_kontrolle  --export=ALL,MODE=kontrolle  linien_verdeckung.slurm
++#   sbatch --job-name=${USER}_verdeckung --export=ALL,MODE=verdeckung linien_verdeckung.slurm
++#   sbatch --job-name=${USER}_eval       --export=ALL,MODE=eval       linien_verdeckung.slurm
++# vorschau:   Trainingsbilder mit Labels und zufälliger Verdeckung als JPG (prüfen, ob die Labels auf den Linien liegen)
++# kontrolle:  Fine-Tuning ohne neue Augmentation (Vergleichslauf)
++# verdeckung: Fine-Tuning mit Linien-Verdeckung (aug_lane_occlusion_p = 0.5)
++# eval:       Basis, Kontrolle und Verdeckung auf den Validierungsbildern vergleichen (sauber und verdeckt)
++
++set -euo pipefail
++
++MODE="${MODE:?MODE setzen: vorschau | kontrolle | verdeckung | eval}"
++
++# ---- an deinen Account anpassen ----
++PROJECT_DIR="${PROJECT_DIR:-$HOME/lane_detection_ai_training}"                 # dein Klon des Repos (Branch training + Patch)
++DATA_DIR="${DATA_DIR:-$PROJECT_DIR/dataset/smartrollerz_bev}"                  # Datensatz mit labels/train_gt.txt, eval_gt.txt, *_cache.json
++RESULTS_DIR="${RESULTS_DIR:-$PROJECT_DIR/results}"                             # Trainingsläufe, MLflow, Auswertung
++CONTAINER_IMAGE="${CONTAINER_IMAGE:-$HOME/containers/lane_detection_ai_training.sqsh}"
++# ------------------------------------
++
++APP=/app
++mkdir -p "$RESULTS_DIR" "$PROJECT_DIR/.cache/torch" "$PROJECT_DIR/.config/matplotlib"
++# Einhängepunkte müssen im Projektordner existieren (auch wenn die Daten woanders liegen)
++mkdir -p "$PROJECT_DIR/dataset/smartrollerz_bev" "$PROJECT_DIR/results" slurm-outs
++for f in "$DATA_DIR/labels/train_gt.txt" "$DATA_DIR/labels/smartrollerz_anno_cache.json" \
++         "$PROJECT_DIR/configs/pretrained_models/best_model_bev_2026.pth" "$CONTAINER_IMAGE"; do
++  [[ -e "$f" ]] || { echo "[FEHLER] fehlt: $f"; exit 1; }
++done
++echo "[INFO] MODE=$MODE  Projekt=$PROJECT_DIR  Daten=$DATA_DIR  Ergebnisse=$RESULTS_DIR"
++
++export NVIDIA_VISIBLE_DEVICES=all
++export NVIDIA_DRIVER_CAPABILITIES=compute,utility
++export MODE
++
++srun --container-image="$CONTAINER_IMAGE" \
++  --container-mounts="$PROJECT_DIR:$APP,$DATA_DIR:$APP/dataset/smartrollerz_bev,$RESULTS_DIR:$APP/results" \
++  bash -lc '
++    set -euo pipefail
++    export XDG_CACHE_HOME=/app/.cache TORCH_HOME=/app/.cache/torch MPLCONFIGDIR=/app/.config/matplotlib
++    cd /app
++    nvidia-smi -L
++    DATA=/app/dataset/smartrollerz_bev
++    case "$MODE" in
++      vorschau)
++        python3 eval_verdeckung.py configs/smartrollerz_bev2026_ft_verdeckung.py \
++          --data_root "$DATA" --list labels/train_gt.txt --out results/eval_verdeckung/vorschau --vorschau 30
++        ;;
++      kontrolle|verdeckung)
++        python3 train_lightning.py configs/smartrollerz_bev2026_ft_$MODE.py \
++          --dataset Smartrollerz --data_root "$DATA" --log_path /app/results \
++          --mlflow_uri file:///app/results/mlruns --mlflow_experiment xai_linien_verdeckung \
++          --mlflow_run_name ft_$MODE --eval_during_training True
++        ;;
++      eval)
++        # jeweils der neueste Lauf; mit KONTROLLE_RUN / VERDECKUNG_RUN (Ordnername in results/) festlegen
++        K="${KONTROLLE_RUN:-$(ls -d results/*_ft_kontrolle 2>/dev/null | tail -1 | xargs -r basename)}"
++        V="${VERDECKUNG_RUN:-$(ls -d results/*_ft_verdeckung 2>/dev/null | tail -1 | xargs -r basename)}"
++        W="basis=configs/pretrained_models/best_model_bev_2026.pth"
++        [[ -n "$K" ]] && W="$W kontrolle=results/$K/best_weights.pth"
++        [[ -n "$V" ]] && W="$W verdeckung=results/$V/best_weights.pth"
++        echo "[INFO] Modelle: $W"
++        python3 eval_verdeckung.py configs/smartrollerz_bev2026_ft_verdeckung.py \
++          --weights $W --data_root "$DATA" --out results/eval_verdeckung
++        ;;
++      *) echo "[FEHLER] unbekannter MODE=$MODE"; exit 1 ;;
++    esac
++  '
+diff --git a/train_lightning.py b/train_lightning.py
+index c579975..51a8d8a 100644
+--- a/train_lightning.py
++++ b/train_lightning.py
+@@ -93,6 +93,8 @@ def main():
+     torch.backends.cudnn.benchmark = True
+ 
+     args, cfg = merge_config()
++    if getattr(cfg, "seed", None) is not None:
++        pl.seed_everything(cfg.seed, workers=True)
+     work_dir = get_work_dir(cfg)
+     os.makedirs(work_dir, exist_ok=True)
+ 
+diff --git a/utils/common.py b/utils/common.py
+index 0e02c45..cf953c3 100644
+--- a/utils/common.py
++++ b/utils/common.py
+@@ -282,6 +282,8 @@ def get_train_loader(cfg):
+             aug_brightness_max=getattr(cfg, 'aug_brightness_max', 1.3),
+             aug_contrast_min=getattr(cfg, 'aug_contrast_min', 0.7),
+             aug_contrast_max=getattr(cfg, 'aug_contrast_max', 1.3),
++            lane_occlusion_p=getattr(cfg, 'aug_lane_occlusion_p', 0.0),
++            seed=getattr(cfg, 'seed', None),
+         )
+ 
+     else:
+diff --git a/utils/weights.py b/utils/weights.py
+new file mode 100644
+index 0000000..dedc123
+--- /dev/null
++++ b/utils/weights.py
+@@ -0,0 +1,19 @@
++import torch
++
++
++def load_parsingnet_weights(model, path: str, strict: bool = True):
++    """Lädt Gewichte in ein parsingNet, egal in welchem der drei Formate sie gespeichert sind:
++    Lightning-.ckpt {"state_dict": ...}, best_weights.pth {"model": ...} oder ein flaches
++    LightningModule-state_dict mit Präfix "model." (z. B. best_model_bev_2026.pth).
++    Gibt (geladen, gesamt, unerwartet) zurück."""
++    state = torch.load(path, map_location="cpu")
++    if "state_dict" in state:
++        state = state["state_dict"]
++    elif isinstance(state.get("model"), dict):
++        state = state["model"]
++    own = set(model.state_dict())
++    stripped = {k.removeprefix("model."): v for k, v in state.items()}
++    if len(own & set(stripped)) > len(own & set(state)):
++        state = stripped
++    missing, unexpected = model.load_state_dict(state, strict=strict)
++    return len(own) - len(missing), len(own), len(unexpected)

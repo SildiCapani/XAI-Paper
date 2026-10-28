@@ -16,3 +16,6 @@ paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
 paper/main.pdf
+experiments/interaktiv.ipynb
+# selbst trainierte Gewichte (groß, nicht ins git)
+models/*.pth

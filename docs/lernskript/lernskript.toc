@@ -1,0 +1,41 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Worum geht es überhaupt?}{3}{section.1}%
+\contentsline {section}{\numberline {2}Was das Modell sieht und was es ausgibt}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Die Eingabe}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Zeilenanker: die zentrale Idee von UFLD}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Die vier Ausgaben}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Von Punktzahlen zur Position}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Aufbau des Netzes}{5}{section.3}%
+\contentsline {section}{\numberline {4}Das Verdeckungsexperiment}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Die Idee}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Schritt für Schritt}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Drei Arten zu übermalen}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Die fünf Bedingungen}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Wie man die Bedingungen liest}{7}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Was gemessen wird}{7}{subsection.4.6}%
+\contentsline {section}{\numberline {5}Grad-CAM und HiResCAM}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Die Grundidee: Class Activation Maps}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Was wir erklären: die Zielgröße $y$}{8}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Grad-CAM}{8}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}HiResCAM}{8}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Warum der Unterschied bei UFLD wichtig ist}{8}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Die Auflösung ist das Hauptproblem}{9}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Wie wir Heatmap und Experiment vergleichen}{9}{subsection.5.7}%
+\contentsline {section}{\numberline {6}Kurz erklärt: die Statistik}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Warum Median?}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Gepaart: dasselbe Bild zweimal}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Wilcoxon-Vorzeichen-Rang-Test}{9}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Was ein p-Wert bedeutet}{9}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Spearman-Korrelation}{10}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Die Übersichtsabbildung lesen}{10}{section.7}%
+\contentsline {section}{\numberline {8}Ergebnisse}{11}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Altes Modell \texttt {bev}: 60 Bilder}{11}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}2026er-Modell \texttt {bev\_2026}}{12}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Erste Beobachtung zur Blendung}{12}{subsection.8.3}%
+\contentsline {section}{\numberline {9}Grenzen und Denkfehler}{12}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Wir verdecken, wo das Modell eine Linie vermutet}{12}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Weitere Grenzen}{13}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Typische Denkfehler}{13}{subsection.9.3}%
+\contentsline {section}{\numberline {10}Wie es weitergeht}{13}{section.10}%
+\contentsline {section}{\numberline {11}Glossar}{14}{section.11}%
+\contentsline {section}{\numberline {12}Selbsttest}{14}{section.12}%

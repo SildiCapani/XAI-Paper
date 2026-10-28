@@ -103,7 +103,8 @@ def main() -> None:
     fig.tight_layout()
     out_dir = paths.results_dir(args.model) / "03_schritte"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out = out_dir / f"frame{args.frame:05d}_T{T}_{args.fill}.png"
+    span = "" if tuple(args.span) == (0.35, 0.65) else f"_span{args.span[0] * 100:.0f}-{args.span[1] * 100:.0f}"
+    out = out_dir / f"frame{args.frame:05d}_T{T}_{args.fill}{span}.png"
     fig.savefig(out, dpi=110, bbox_inches="tight")
     print(f"Gespeichert: {out}")
 

@@ -57,7 +57,7 @@ def default_layer(cfg) -> str:
 
 
 def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill_method="median",
-              thickness=None, layer=None, cam_images=("0", "A")) -> FrameResult:
+              thickness=None, layer=None, cam_images=("0", "A"), conditions=CONDITIONS) -> FrameResult:
     shape = rgb.shape[:2]
     thickness = thickness or default_thickness(cfg)
     layer = layer or default_layer(cfg)
@@ -80,13 +80,15 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
     m_ctrl = polyline_mask((lanes0[T] + lanes0[N]) / 2, shape, thickness) & ~m_t & ~m_n
     masks = {"T_verdeckt": m_hidden, "T_sichtbar": m_t & ~m_hidden, "N": m_n, "Kontrolle": m_ctrl}
 
-    conditions = {
+    all_conditions = {
         "0": np.zeros(shape, bool),
         "A": m_hidden,
         "B": m_hidden | m_n,
         "C": m_n,
         "D": m_hidden | m_ctrl,
     }
+    # nur die angefragten Bedingungen rechnen (Video braucht z. B. nur "0" und eine)
+    conditions = {c: all_conditions[c] for c in conditions}
 
     rows, preds, imgs = [], {}, {}
     for name, mask in conditions.items():
