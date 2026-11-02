@@ -28,7 +28,11 @@ MODELS = {
     "bev_2026_verdeckung": (OWN_MODEL_DIR / "bev_2026_ft_verdeckung.pth", CONFIG_2026),
 }
 DEFAULT_MODEL = os.environ.get("XAI_MODEL", "bev_2026")
-TEST_IMAGE_DIR = MODEL_DIR / "eval_2025-03-06"
+# Die Testbilder lagen erst direkt in models/, seit dem 31.10.2026 im Datensatz-Ordner
+_TEST_IMAGE_DIRS = [MODEL_DIR / "eval_2025-03-06",
+                    MODEL_DIR / "data/data/smartrollerz_bev/data/eval_2025-03-06"]
+TEST_IMAGE_DIR = Path(os.environ.get("XAI_TEST_IMAGES", "")) if os.environ.get("XAI_TEST_IMAGES") else next(
+    (d for d in _TEST_IMAGE_DIRS if d.is_dir()), _TEST_IMAGE_DIRS[-1])
 
 RESULTS_ROOT = PROJECT_ROOT / "results"
 

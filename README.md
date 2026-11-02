@@ -21,6 +21,7 @@ wie man die Abbildungen liest, bisherige Ergebnisse und alle Befehle.
 | `results/<modell>/` | erzeugte Ausgaben je Modell (nicht im git, jederzeit reproduzierbar) |
 | `docs/` | Erklärung mit Bildern (`ERKLAERUNG.md`, Bilder in `docs/bilder/`) |
 | `paper/` | LaTeX-Paper (Deutsch), `paper/figures/` für ausgewählte Abbildungen |
+| `lernen/` | Lernpfad: die ganze Kette in 7 Schritten selbst schreiben, mit automatischer Prüfung (`LERNPFAD.md`) |
 | `training/` | Fine-Tuning mit Linien-Verdeckung auf dem DGX: Patch für das Team-Repo und Schritt-für-Schritt-Anleitung (`DGX_ANLEITUNG.md`) |
 | `models/` | selbst trainierte Gewichte vom DGX (nicht im git), Auswahl per `--model bev_2026_kontrolle` / `bev_2026_verdeckung` |
 

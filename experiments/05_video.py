@@ -11,8 +11,10 @@ Ergebnis: results/<modell>/05_video/T{T}_N{N}_{Bedingung}_{fill}[_span..].mp4 (+
 """
 
 import argparse
+import subprocess
 
 import cv2
+import imageio_ffmpeg
 import numpy as np
 import pandas as pd
 
@@ -49,6 +51,15 @@ def label(img, lines) -> None:
         y = 22 + 22 * i
         cv2.putText(img, text, (8, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 3, cv2.LINE_AA)
         cv2.putText(img, text, (8, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
+
+
+def to_h264(path) -> None:
+    """OpenCV schreibt MPEG-4 Part 2 (mp4v), das Browser und viele Player nicht abspielen.
+    Umwandeln in H.264, das fast überall läuft (ffmpeg kommt aus imageio-ffmpeg)."""
+    tmp = path.with_suffix(".h264.mp4")
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i", str(path), "-c:v", "libx264",
+                    "-pix_fmt", "yuv420p", "-crf", "23", "-movflags", "+faststart", str(tmp)], check=True)
+    tmp.replace(path)
 
 
 def main() -> None:
@@ -103,6 +114,7 @@ def main() -> None:
         if i % 50 == 0:
             print(f"[{i + 1}/{len(images)}] {path.name}", flush=True)
     writer.release()
+    to_h264(out_dir / f"{stem}.mp4")
 
     table = pd.DataFrame(rows)
     table.to_csv(out_dir / f"{stem}.csv", index=False)

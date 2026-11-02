@@ -19,3 +19,6 @@ paper/main.pdf
 experiments/interaktiv.ipynb
 # selbst trainierte Gewichte (groß, nicht ins git)
 models/*.pth
+
+#Lernpfad
+lernen/*
