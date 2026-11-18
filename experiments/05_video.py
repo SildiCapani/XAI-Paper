@@ -29,6 +29,11 @@ OUT_WIDTH = 768  # jede Hälfte wird auf diese Breite hochskaliert
 
 
 def draw(rgb, lanes, scale, mask=None, ref=None, T=None) -> np.ndarray:
+    """Vergrößert ein Bild und zeichnet die Linienpunkte ein (eine Hälfte des Videobilds).
+
+    Optional: Umriss der Maske (magenta) und die Referenzpunkte von T als weiße Kreuze.
+    OpenCV arbeitet mit BGR statt RGB, deshalb die Umwandlung am Anfang.
+    """
     img = cv2.resize(cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), None, fx=scale, fy=scale,
                      interpolation=cv2.INTER_NEAREST)
     if mask is not None:
@@ -47,6 +52,7 @@ def draw(rgb, lanes, scale, mask=None, ref=None, T=None) -> np.ndarray:
 
 
 def label(img, lines) -> None:
+    """Schreibt Textzeilen oben links ins Bild, weiß mit schwarzem Rand, damit man sie überall lesen kann."""
     for i, text in enumerate(lines):
         y = 22 + 22 * i
         cv2.putText(img, text, (8, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 3, cv2.LINE_AA)
@@ -63,6 +69,8 @@ def to_h264(path) -> None:
 
 
 def main() -> None:
+    """Geht alle Bilder der Fahrt durch, rechnet je Bild Referenz und eine Bedingung und schreibt
+    beide Hälften nebeneinander als ein Videobild. Am Ende: Video nach H.264 umwandeln, CSV speichern."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--lane", type=int, default=1, help="T: Linie, deren Stück verdeckt wird")
     parser.add_argument("--neighbor", type=int, default=2, help="N: Nachbarlinie")
@@ -99,6 +107,7 @@ def main() -> None:
         else:
             r = res.table.loc[cond]
             rows.append({"Bild": path.name, **r.to_dict()})
+            # Maske passend zur Bedingung zusammensetzen (nur zum Einzeichnen, gerechnet hat run_frame schon)
             mask = res.masks["T_verdeckt"] if cond != "C" else res.masks["N"]
             if cond == "B":
                 mask = mask | res.masks["N"]
@@ -110,7 +119,7 @@ def main() -> None:
             label(right, [f"Bedingung {cond}: T = {LANE_NAMES[T]}, N = {LANE_NAMES[N]}",
                           f"T verschoben {r.dx_mittel_px:.1f} px "
                           f"({r.dx_mittel_pct:.2f} % Breite), P = {r.P_exist_T:.2f}"])
-        writer.write(np.hstack([left, right]))
+        writer.write(np.hstack([left, right]))  # hstack: beide Hälften nebeneinander zu einem Bild
         if i % 50 == 0:
             print(f"[{i + 1}/{len(images)}] {path.name}", flush=True)
     writer.release()

@@ -28,6 +28,11 @@ PAIRS = [(1, 2), (0, 1)]  # (T, N)
 
 
 def frame_rows(net, cfg, rgb, name, fill_method):
+    """Rechnet für ein Bild die Bedingungen A–D und misst zusätzlich die Fehlerarten.
+
+    Gibt eine Liste von Zeilen zurück (eine pro Linienpaar × Bedingung). Neben dx aus run_frame:
+    Rückt T auf eine andere Linie? Wird T zackig? Wandert N mit? Glaubt das Modell noch an N?
+    """
     rows = []
     for T, N in PAIRS:
         try:
@@ -39,11 +44,14 @@ def frame_rows(net, cfg, rgb, name, fill_method):
         for c in "ABCD":
             lanes = r.preds[c]
             xt = lanes[T][h, 0]
+            # Abstand jedes neuen T-Punkts zur alten Position von T und zur nächsten anderen Linie.
+            # Liegt er näher an einer anderen Linie, ist T dorthin "nachgerückt".
             d_self = np.abs(xt - ref[T][h, 0])
             d_other = np.nanmin(np.stack([np.abs(xt - ref[k][h, 0]) for k in others]), axis=0)
             dn = np.abs(lanes[N][:, 0] - ref[N][:, 0])
             row = {"Bild": name, "T": T, "N": N, "Bedingung": c, **r.table.loc[c].to_dict(),
                    "sprung_anteil": np.mean(d_other < d_self) if not np.isnan(xt).all() else np.nan,
+                   # 2. Differenz: wie stark die Richtung von Punkt zu Punkt wechselt (gerade Linie ≈ 0)
                    "zickzack": np.nanmean(np.abs(np.diff(xt, 2))) if len(h) > 2 else np.nan,
                    "zickzack_ref": np.nanmean(np.abs(np.diff(ref[T][h, 0], 2))) if len(h) > 2 else np.nan,
                    "N_dx": np.nanmean(dn) if not np.isnan(dn).all() else np.nan}
@@ -55,6 +63,8 @@ def frame_rows(net, cfg, rgb, name, fill_method):
 
 
 def summarize(df: pd.DataFrame) -> pd.DataFrame:
+    """Fasst alle Zeilen pro Linienpaar und Bedingung zusammen: Mediane und Anteile der Fehlerarten."""
+    # Ja/Nein-Spalten: Mittelwert davon = Anteil der Bilder, in denen der Fehler auftritt
     df = df.assign(gross=df.dx_mittel_pct > 3, sehr_gross=df.dx_mittel_pct > 10,
                    sprung=df.sprung_anteil > 0.5, verloren=df.Anker_verloren > 0)
     g = df.groupby(["T", "N", "Bedingung"])
@@ -74,6 +84,7 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main() -> None:
+    """Läuft frame_rows über alle gewählten Bilder, speichert zwischendurch und am Ende die Statistik."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--model", default=paths.DEFAULT_MODEL, choices=list(paths.MODELS))
     parser.add_argument("--end", type=int, help="letztes Bild (exklusiv), Standard: alle")

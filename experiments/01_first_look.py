@@ -37,6 +37,11 @@ LANE_COLORS = ["tab:blue", "tab:green", "tab:red"]
 
 
 def main() -> None:
+    """Ein Bild, alle Bedingungen 0 und A–F: Tabelle im Terminal und eine große Abbildung.
+
+    Ablauf: Argumente lesen → Modell und Bild laden → run_frame rechnet alles
+    (Masken, Übermalen, neue Vorhersagen, Heatmaps) → Tabellen ausgeben → Abbildung speichern.
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--frame", type=int, default=0, help="Index in der sortierten Testbildliste")
     parser.add_argument("--lane", type=int, default=1, help="Ziellinie T")
@@ -53,8 +58,11 @@ def main() -> None:
 
     net, cfg = load_model(args.model)
     images = sorted(paths.TEST_IMAGE_DIR.glob("*.jpg"))
+    # Bild laden (grau) und auf die Eingabegröße des Modells bringen, z. B. 512×384 mit 3 Kanälen
     rgb = to_model_rgb(load_gray(images[args.frame]), cfg.train_width, cfg.train_height)
     try:
+        # Die ganze Arbeit passiert in src/xai_lane/experiment.py, damit 01, 02, 03, 05 und 06
+        # exakt dasselbe messen. cam_images: auf welchen Bildern eine Heatmap gerechnet wird.
         res = run_frame(net, cfg, rgb, T, N, args.span, args.fill, args.thickness, args.layer,
                         cam_images=("0", "A", "B", "C", "E", "F"), conditions=ALL_CONDITIONS)
     except SkipFrame:
@@ -79,6 +87,7 @@ def main() -> None:
     if tuple(args.span) != (0.35, 0.65):  # nur abweichende Bereiche im Namen, Standardnamen bleiben gleich
         stem += f"_span{args.span[0] * 100:.0f}-{args.span[1] * 100:.0f}"
     fig, axes = plt.subplots(2, 7, figsize=(28, 7.5))
+    # Obere Reihe: je Bedingung das übermalte Bild mit den vorhergesagten Punkten aller drei Linien
     for ax, (name, img) in zip(axes[0], res.imgs.items()):
         ax.imshow(img)
         for lane, pts in enumerate(res.preds[name]):
@@ -86,6 +95,7 @@ def main() -> None:
         ax.plot(lanes0[T][hidden, 0], lanes0[T][hidden, 1], "w--", lw=1)
         r = table.loc[name]
         ax.set_title(f"{name}: dx={r.dx_mittel_px:.1f}px, P={r.P_exist_T:.2f}")
+    # Untere Reihe: Heatmaps, darüber die Umrisse der Nachbarlinie (weiß) und des verdeckten Stücks (magenta)
     for ax, ((img_name, method), cam) in zip(axes[1], res.cams.items()):
         ax.imshow(res.imgs[img_name])
         ax.imshow(cam, cmap="jet", alpha=0.45)

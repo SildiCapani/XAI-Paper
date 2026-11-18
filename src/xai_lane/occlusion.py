@@ -11,8 +11,9 @@ import numpy as np
 def polyline_mask(points: np.ndarray, shape: tuple[int, int], thickness: int = 14) -> np.ndarray:
     """Maske entlang einer Punktfolge (N, 2); NaN-Punkte werden übersprungen."""
     mask = np.zeros(shape, dtype=np.uint8)
-    pts = points[~np.isnan(points).any(axis=1)]
+    pts = points[~np.isnan(points).any(axis=1)]  # nur Anker, an denen die Linie erkannt wurde
     if len(pts) >= 2:
+        # Punkte mit geraden Stücken verbinden und thickness px dick zeichnen (Wert 1 = maskiert)
         cv2.polylines(mask, [np.round(pts).astype(np.int32)], False, 1, thickness)
     return mask.astype(bool)
 
@@ -32,16 +33,20 @@ def fill(rgb: np.ndarray, mask: np.ndarray, method: str = "median", ring: int = 
         return out
     m = mask.astype(np.uint8)
     if method == "inpaint":
+        # Telea füllt die Maske vom Rand nach innen mit den Farben der Umgebung auf
         return cv2.inpaint(out, m, max(2, ring // 3), cv2.INPAINT_TELEA)
     if method == "blendung":
         # weiche Maske: Kern = Maske, Rand läuft über etwa ring px aus
         soft = cv2.GaussianBlur(cv2.dilate(m, np.ones((ring, ring), np.uint8)).astype(np.float32), (0, 0), ring / 2)
         soft = np.clip(soft / soft.max() * 1.5, 0, 1)[..., None]
+        # Mischen: wo soft = 1, wird das Pixel fast weiß (235), wo soft = 0, bleibt das Original
         return (out * (1 - soft) + 235 * soft).astype(np.uint8)
     if method != "median":
         raise ValueError(f"Unbekanntes Füllverfahren: {method}")
+    # dilate vergrößert die Maske um ring px. Minus die Maske selbst bleibt ein Ring drumherum:
+    # das ist die Straße direkt neben der Linie, daraus nehmen wir den typischen Grauwert.
     ring = cv2.dilate(m, np.ones((ring, ring), np.uint8)).astype(bool) & ~mask
     gray = rgb[..., 0]
-    ring &= gray > 5
+    ring &= gray > 5  # schwarze Bildränder (außerhalb der Kamerasicht) nicht mitzählen
     out[mask] = np.median(gray[ring]) if ring.any() else np.median(gray)
     return out

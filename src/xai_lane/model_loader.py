@@ -18,6 +18,7 @@ LIGHTNING_PREFIX = "model."
 
 
 def load_config(config_path: str | Path):
+    """Liest die Config-Datei des Teams (Eingabegröße, Anzahl Anker, row_anchor, ...) mit deren eigenem Code."""
     paths.add_lane_detection_to_path()
     from lane_detection_ai.model.utils.common import get_config
 
@@ -25,6 +26,7 @@ def load_config(config_path: str | Path):
 
 
 def _state_dict(ck: dict) -> dict:
+    """Holt aus einer Checkpoint-Datei das Dict "Schichtname -> Gewichte", egal welches der beiden Formate."""
     if "model" in ck and isinstance(ck["model"], dict):
         return ck["model"]
     if all(k.startswith(LIGHTNING_PREFIX) for k in ck):
@@ -38,9 +40,9 @@ def load_model(name: str = paths.DEFAULT_MODEL):
     cfg = load_config(config_path)
     from lane_detection_ai.model.model.model_smartrollerz import get_model
 
-    net = get_model(cfg)
+    net = get_model(cfg)  # leeres Netz mit der richtigen Form (noch zufällige Gewichte)
     # weights_only=True verhindert beliebigen Code im Pickle; der Optimizer-Zustand lädt damit auch
     ck = torch.load(str(model_path), map_location="cpu", weights_only=True)
-    net.load_state_dict(_state_dict(ck), strict=True)
-    net.eval()
+    net.load_state_dict(_state_dict(ck), strict=True)  # trainierte Gewichte einsetzen
+    net.eval()  # Auswertungsmodus: BatchNorm nutzt die gespeicherten Mittelwerte statt die des aktuellen Bildes
     return net, cfg

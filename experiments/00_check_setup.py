@@ -11,6 +11,10 @@ from xai_lane.preprocess import load_gray, preprocess
 
 
 def main() -> None:
+    """Lädt das Modell, schickt ein Testbild durch und prüft, dass Gradienten bis layer4 fließen.
+
+    Gradienten an layer4 braucht HiResCAM. Fehlen sie, kann keine Heatmap berechnet werden.
+    """
     net, cfg = load_model()
     print(f"Modell geladen (strict=True), Eingabe {cfg.train_width}x{cfg.train_height}")
 
@@ -19,6 +23,8 @@ def main() -> None:
     gray = load_gray(images[0])
     x, _ = preprocess(gray, cfg.train_width, cfg.train_height)
 
+    # Ein "Hook" ist eine Funktion, die PyTorch bei jedem Durchlauf von layer4 aufruft.
+    # Damit merken wir uns die Ausgabe von layer4 (die Merkmalskarten), ohne das Modell zu ändern.
     feats = {}
     net.model.layer4.register_forward_hook(lambda m, i, o: feats.update(layer4=o))
     out = net(x)
@@ -26,6 +32,8 @@ def main() -> None:
         print(f"  {name:10s} {tuple(t.shape)}")
     print(f"  layer4     {tuple(feats['layer4'].shape)}")
 
+    # retain_grad: PyTorch soll den Gradienten an dieser Zwischenstelle aufheben (sonst wird er verworfen).
+    # backward: Gradienten einer beliebigen Ausgabe (hier exist_row) rückwärts durchs Netz rechnen.
     feats["layer4"].retain_grad()
     out["exist_row"][0, 1].sum().backward()
     g = feats["layer4"].grad

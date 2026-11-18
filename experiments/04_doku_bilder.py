@@ -46,6 +46,10 @@ MODEL_TITLES = {"bev": "altes Modell bev (128×96)", "bev_2026": "2026er-Modell 
 
 
 def _batch_bars(ax, model) -> None:
+    """Zeichnet das Balkendiagramm (A–D je Linienpaar) eines Modells in die Achse ax.
+
+    Liest dafür die zusammenfassung.csv aus 02_batch. Wird von batch_chart und vergleich_chart benutzt.
+    """
     s = pd.read_csv(paths.results_dir(model) / "02_batch" / "zusammenfassung.csv")
     s = s[s.Fuellung == "inpaint"].reset_index(drop=True)
     groups = [f"{LANE_NAMES[t]} ← {LANE_NAMES[n]}" for t, n in zip(s["T"], s.N)]
@@ -66,6 +70,7 @@ def _batch_bars(ax, model) -> None:
 
 
 def batch_chart(out, model="bev") -> None:
+    """Balkendiagramm für ein einzelnes Modell, gespeichert unter out."""
     fig, ax = plt.subplots(figsize=(9, 4.2))
     _batch_bars(ax, model)
     ax.set_ylabel("Verschiebung von T im gestörten Stück\n(Median, % der Bildbreite)", color="#52514e")
@@ -89,6 +94,8 @@ def vergleich_chart(out) -> None:
 
 
 def main() -> None:
+    """Ruft die Experiment-Skripte für die Beispiele in FIGURES auf, kopiert deren Bilder nach
+    docs/bilder/ und zeichnet die Balkendiagramme neu."""
     DOCS.mkdir(parents=True, exist_ok=True)
     for script, args, produced, name in FIGURES:
         subprocess.run([PY, str(EXP / script), *args], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

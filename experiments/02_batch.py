@@ -37,6 +37,12 @@ PAIRS = [(0, 1), (1, 0), (1, 2), (2, 1)]  # (T, N): nur direkt benachbarte Linie
 
 
 def run(args, out_dir) -> None:
+    """Rechnet das Experiment für viele Bilder und speichert die Rohdaten als CSV.
+
+    Für jedes Bild × Linienpaar × Füllung wird run_frame aufgerufen. Jede Bedingung ergibt
+    eine Zeile in verdeckung.csv, jede Heatmap eine Zeile in cam.csv. Bilder, in denen
+    T oder N nicht erkannt wird, werden übersprungen (SkipFrame).
+    """
     net, cfg = load_model(args.model)
     images = sorted(paths.TEST_IMAGE_DIR.glob("*.jpg"))[:: args.step]
     occ_rows, cam_rows, skipped = [], [], 0
@@ -76,8 +82,15 @@ def run(args, out_dir) -> None:
 
 
 def summarize(out_dir) -> pd.DataFrame:
+    """Macht aus den Rohdaten eine Statistik: eine Zeile pro Linienpaar und Füllung.
+
+    Enthält Mediane der Verschiebung je Bedingung, die Tests „B schlechter als A / D?“
+    (und mit --ef „F schlechter als E?“) und den Abgleich Heatmap ↔ Experiment (Spearman).
+    """
     occ = pd.read_csv(out_dir / "verdeckung.csv")
     cam = pd.read_csv(out_dir / "cam.csv")
+    # pivot_table dreht die Tabelle: eine Zeile pro Bild, eine Spalte pro Bedingung (A, B, C, D, ...).
+    # So kann man B − A Bild für Bild ausrechnen (gepaarter Vergleich).
     dx = occ.pivot_table(index=["Fuellung", "T", "N", "Bild"], columns="Bedingung", values="dx_mittel_px")
     occ_pct = occ.pivot_table(index=["Fuellung", "T", "N", "Bild"], columns="Bedingung", values="dx_mittel_pct")
     p_exist = occ.pivot_table(index=["Fuellung", "T", "N", "Bild"], columns="Bedingung", values="P_exist_T")
@@ -96,6 +109,8 @@ def summarize(out_dir) -> pd.DataFrame:
             v = g[d].dropna()
             row[f"{d}_median"] = v.median()
             row[f"{d}_anteil_pos"] = (v > 0).mean()
+            # Wilcoxon-Test: Sind die Differenzen über alle Bilder systematisch größer als 0?
+            # Er vergleicht nur Ränge, deshalb stören einzelne Ausreißer kaum.
             # einseitig: Hypothese "ohne N wird es schlechter"
             row[f"{d}_p"] = wilcoxon(v, alternative="greater").pvalue if (v != 0).any() else np.nan
         pe = p_exist.loc[(fill_method, T, N)]
@@ -105,6 +120,8 @@ def summarize(out_dir) -> pd.DataFrame:
             c = cam[(cam.Fuellung == fill_method) & (cam["T"] == T) & (cam.N == N)
                     & (cam.CAM_Bild == "A") & (cam.Methode == method)].set_index("Bild")
             row[f"{method}_N_vs_Flaeche"] = c["N_vs_Flaeche"].median()
+            # Spearman: Haben Bilder mit viel Heatmap auf N auch einen großen Effekt B − A?
+            # +1 = gleiche Rangfolge (Erklärung passt), 0 = kein Zusammenhang
             effect = g["B_minus_A"].droplevel(["Fuellung", "T", "N"])
             both = pd.concat([c["N_Anteil"], effect], axis=1, join="inner").dropna()
             row[f"{method}_spearman"] = spearmanr(both.iloc[:, 0], both.iloc[:, 1]).statistic
@@ -138,6 +155,7 @@ def summarize(out_dir) -> pd.DataFrame:
 
 
 def main() -> None:
+    """Liest die Argumente, startet run (außer bei --summary-only) und gibt die Statistik lesbar aus."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--step", type=int, default=20, help="jedes step-te Testbild verwenden")
     parser.add_argument("--fill", nargs="+", default=["median", "inpaint"], choices=["median", "inpaint", "blendung"])

@@ -41,7 +41,8 @@ class SkipFrame(Exception):
 
 
 def predict(net, rgb: np.ndarray) -> dict:
-    with torch.no_grad():
+    """Ein Bild durchs Netz schicken. Gibt das Dict mit loc_row, exist_row, loc_col, exist_col zurück."""
+    with torch.no_grad():  # keine Gradienten nötig, spart Zeit und Speicher
         return net(to_tensor(rgb))
 
 
@@ -61,6 +62,15 @@ def default_layer(cfg) -> str:
 
 def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill_method="median",
               thickness=None, layer=None, cam_images=("0", "A"), conditions=CONDITIONS) -> FrameResult:
+    """Das ganze Experiment für ein Bild und ein Linienpaar (T = Ziellinie, N = Nachbar).
+
+    1. Referenz: Vorhersage auf dem Originalbild, verdeckte Anker von T bestimmen
+    2. Masken bauen: Stück von T, ganz T, ganz N, Kontrollstreifen
+    3. Je Bedingung: Masken übermalen, neu vorhersagen, Verschiebung von T messen
+    4. Heatmaps (HiResCAM) auf den Bildern in cam_images, Anteil auf N und T messen
+
+    Wirft SkipFrame, wenn T im Bereich span oder N gar nicht erkannt wird.
+    """
     shape = rgb.shape[:2]
     thickness = thickness or default_thickness(cfg)
     layer = layer or default_layer(cfg)
@@ -68,6 +78,7 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
     # Referenz
     pred0 = predict(net, rgb)
     lanes0, bins0 = decode_row_lanes(pred0, cfg)
+    # span (0.35, 0.65) -> Anker-Nummern, bei 55 Ankern 19 bis 34. Davon nur die, an denen T erkannt wurde.
     k0, k1 = (int(s * cfg.num_row) for s in span)
     hidden = np.arange(k0, k1)
     hidden = hidden[~np.isnan(lanes0[T][hidden, 0])]
@@ -80,6 +91,7 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
     m_hidden = polyline_mask(seg, shape, thickness)
     m_t = polyline_mask(lanes0[T], shape, thickness)
     m_n = polyline_mask(lanes0[N], shape, thickness)
+    # Kontrollstreifen genau in der Mitte zwischen T und N, also auf freier Straße
     m_ctrl = polyline_mask((lanes0[T] + lanes0[N]) / 2, shape, thickness) & ~m_t & ~m_n
     masks = {"T_verdeckt": m_hidden, "T_sichtbar": m_t & ~m_hidden, "N": m_n, "Kontrolle": m_ctrl}
 
@@ -100,6 +112,8 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
         img = fill(rgb, mask, fill_method, ring=thickness + 1)
         pred = pred0 if name == "0" else predict(net, img)
         lanes, _ = decode_row_lanes(pred, cfg)
+        # Verschiebung = wie weit T an jedem verdeckten Anker von seiner Originalposition abweicht.
+        # NaN heißt: dort wird T gar nicht mehr erkannt (zählt als "Anker_verloren").
         dx = np.abs(lanes[T][hidden, 0] - lanes0[T][hidden, 0])
         rows.append({
             "Bedingung": name,
@@ -114,6 +128,8 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
     table = pd.DataFrame(rows).set_index("Bedingung")
 
     # CAMs für die verdeckten Anker von T, Ziel = Referenz-Bins
+    # Auch auf verdeckten Bildern wird nach den Kästchen aus dem Originalbild gefragt:
+    # "Was hält die Linie an ihrer alten Stelle?"
     target = RowBinTarget(T, hidden, bins0[hidden, T])
     regions = {r: masks[r] for r in ("N", "T_sichtbar", "T_verdeckt")}
     cams, cam_rows = {}, []

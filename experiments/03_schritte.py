@@ -27,6 +27,10 @@ LANE_COLORS = ["tab:blue", "tab:green", "tab:red"]
 
 
 def main() -> None:
+    """Rechnet Bedingung A für ein Bild und zeichnet die 5 Schritte nebeneinander.
+
+    Es wird nichts Neues gemessen, die Abbildung erklärt nur die Methode (für Doku und Folien).
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--frame", type=int, default=0)
     parser.add_argument("--lane", type=int, default=1, help="Linie, deren Stück verdeckt wird")
@@ -45,6 +49,7 @@ def main() -> None:
     except SkipFrame:
         raise SystemExit("Die Linie wird im gewählten Bereich nicht erkannt.")
     hidden, lanes0, mask = res.hidden, res.lanes0, res.masks["T_verdeckt"]
+    # row_anchor sind die Höhen der Zeilenanker als Anteil der Bildhöhe (0 = oben, 1 = unten) -> Pixel
     ys = cfg.row_anchor * cfg.train_height
     H, W = rgb.shape[:2]
 

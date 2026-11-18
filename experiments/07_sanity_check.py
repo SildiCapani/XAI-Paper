@@ -80,6 +80,12 @@ def targets_for(net, cfg, rgb, span=(0.35, 0.65)):
 
 
 def run(args, out_dir):
+    """Für jedes Bild: Heatmap des trainierten Modells, dann Schicht für Schicht zufällig machen
+    und jedes Mal die Heatmap neu rechnen und mit der trainierten vergleichen.
+
+    Gibt die Rohdaten (auch als sanity.csv), die Karten für die Beispielabbildung, das erste Bild
+    und die Config zurück.
+    """
     trained, cfg = load_model(args.model)
     layer = default_layer(cfg)
     images = sorted(paths.TEST_IMAGE_DIR.glob("*.jpg"))[:: args.step]
@@ -91,6 +97,7 @@ def run(args, out_dir):
         ref = {T: compute_cam(trained, x, tgt, "hirescam", layer) for T, (tgt, _) in targets.items()}
 
         def record(stage, seed, T, cam, mask):
+            """Vergleicht eine Heatmap mit der trainierten und hängt das Ergebnis als Zeile an."""
             # Eine konstante Karte (alles 0) hat keine Rangfolge -> Korrelation 0
             rho = spearmanr(ref[T].ravel(), cam.ravel())[0] if cam.std() > 0 else 0.0
             rows.append({"Bild": path.name, "seed": seed, "Stufe": stage, "T": T,
@@ -102,7 +109,7 @@ def run(args, out_dir):
             record("trainiert", 0, T, ref[T], mask)
         for seed in range(args.seeds):
             torch.manual_seed(seed)
-            net = copy.deepcopy(trained)
+            net = copy.deepcopy(trained)  # Kopie, damit das trainierte Modell für das nächste Bild heil bleibt
             for stage, modules in STAGES[1:]:
                 randomize(net, modules)
                 for T, (tgt, mask) in targets.items():
@@ -114,6 +121,7 @@ def run(args, out_dir):
 
 
 def summarize(df: pd.DataFrame, out_dir) -> pd.DataFrame:
+    """Median und 25–75 %-Bereich je Stufe, in der Reihenfolge von STAGES."""
     order = [s for s, _ in STAGES]
     s = (df.groupby("Stufe")
          .agg(n=("spearman", "size"), spearman_median=("spearman", "median"),
@@ -125,6 +133,7 @@ def summarize(df: pd.DataFrame, out_dir) -> pd.DataFrame:
 
 
 def plot_curve(s: pd.DataFrame, out) -> None:
+    """Die Kurve für die Folie: Ähnlichkeit (blau, linke Achse) und Fokus auf T (orange, rechte Achse) je Stufe."""
     fig, ax1 = plt.subplots(figsize=(9, 4.2))
     x = range(len(s))
     ax1.fill_between(x, s.spearman_q25, s.spearman_q75, color="#2a78d6", alpha=0.2, linewidth=0)
@@ -151,6 +160,7 @@ def plot_curve(s: pd.DataFrame, out) -> None:
 
 
 def plot_example(example: dict, image_path, cfg, out) -> None:
+    """Die Heatmaps eines Bildes nebeneinander, von trainiert bis alles zufällig."""
     gray = to_model_rgb(load_gray(image_path), cfg.train_width, cfg.train_height)[..., 0]
     fig, axes = plt.subplots(1, len(example), figsize=(2.6 * len(example), 2.6))
     for ax, (stage, cam) in zip(axes, example.items()):
@@ -164,6 +174,7 @@ def plot_example(example: dict, image_path, cfg, out) -> None:
 
 
 def main() -> None:
+    """Argumente lesen, run starten, Statistik ausgeben und beide Abbildungen speichern."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--model", default=paths.DEFAULT_MODEL, choices=sorted(paths.MODELS))
     parser.add_argument("--step", type=int, default=120, help="jedes step-te Testbild")
