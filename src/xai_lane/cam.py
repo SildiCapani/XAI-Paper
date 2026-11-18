@@ -1,4 +1,6 @@
-"""Grad-CAM und HiResCAM (pytorch-grad-cam) für die UFLDv2-Zeilenanker.
+"""HiResCAM (pytorch-grad-cam) für die UFLDv2-Zeilenanker.
+
+Grad-CAM wurde anfangs mitgerechnet und am 2026-11-13 entfernt, siehe docs/PROTOKOLL.md.
 
 pytorch-grad-cam erwartet ein Modell mit einem Tensor als Ausgabe; das Modell
 des Teams liefert ein Dict. LocRowOnly gibt daher nur loc_row weiter.
@@ -6,9 +8,9 @@ des Teams liefert ein Dict. LocRowOnly gibt daher nur loc_row weiter.
 
 import numpy as np
 import torch
-from pytorch_grad_cam import GradCAM, HiResCAM
+from pytorch_grad_cam import HiResCAM
 
-METHODS = {"gradcam": GradCAM, "hirescam": HiResCAM}
+METHODS = {"hirescam": HiResCAM}
 
 
 class LocRowOnly(torch.nn.Module):

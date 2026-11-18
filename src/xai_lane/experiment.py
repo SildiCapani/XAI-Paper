@@ -1,7 +1,8 @@
 """Verdeckungsexperiment und CAM-Auswertung für ein Bild und ein Linienpaar (T, N).
 
 Bedingungen (siehe experiments/01_first_look.py):
-  0 Referenz, A Teilstück von T, B A + N ganz, C nur N, D A + Kontrollstreifen.
+  0 Referenz, A Teilstück von T, B A + N ganz, C nur N, D A + Kontrollstreifen,
+  E T ganz, F T ganz + N ganz (E/F nur auf Anfrage, siehe ALL_CONDITIONS).
 Wird von 01_first_look.py (ein Bild, mit Abbildung) und 02_batch.py (viele
 Bilder) benutzt, damit beide exakt dasselbe messen.
 """
@@ -18,7 +19,9 @@ from xai_lane.occlusion import fill, polyline_mask
 from xai_lane.preprocess import to_tensor
 
 CONDITIONS = ("0", "A", "B", "C", "D")
-CAM_METHODS = ("gradcam", "hirescam")
+# E/F: Fehlt T ganz, orientiert sich die KI dann an N? (F nimmt zusätzlich N weg)
+ALL_CONDITIONS = CONDITIONS + ("E", "F")
+CAM_METHODS = ("hirescam",)  # Grad-CAM entfernt, siehe docs/PROTOKOLL.md
 
 
 @dataclass
@@ -86,6 +89,8 @@ def run_frame(net, cfg, rgb: np.ndarray, T: int, N: int, span=(0.35, 0.65), fill
         "B": m_hidden | m_n,
         "C": m_n,
         "D": m_hidden | m_ctrl,
+        "E": m_t,
+        "F": m_t | m_n,
     }
     # nur die angefragten Bedingungen rechnen (Video braucht z. B. nur "0" und eine)
     conditions = {c: all_conditions[c] for c in conditions}

@@ -1,4 +1,4 @@
-"""Erster Durchlauf auf einem Testbild: Verdeckung + Grad-CAM/HiResCAM.
+"""Erster Durchlauf auf einem Testbild: Verdeckung + HiResCAM.
 
 Für Ziellinie T und Nachbarlinie N (Indizes: 0 links, 1 Mitte, 2 rechts):
   0  Referenz, nichts verdeckt
@@ -6,12 +6,14 @@ Für Ziellinie T und Nachbarlinie N (Indizes: 0 links, 1 Mitte, 2 rechts):
   B  A + N vollständig verdeckt
   C  nur N verdeckt
   D  A + Kontrollstreifen gleicher Form auf freier Straße (zwischen T und N)
+  E  T vollständig verdeckt
+  F  T und N vollständig verdeckt
 Gemessen wird an den Zeilenankern des verdeckten Teilstücks von T: mittlere
 x-Abweichung zur Referenz (px, Modellauflösung) und P(Spur existiert).
 Referenz ist die Vorhersage auf dem unverdeckten Bild (es gibt keine Labels).
 
-Danach Grad-CAM und HiResCAM für genau diese Anker (Ziel: Logits der Referenz-Bins)
-auf dem Referenzbild und auf Bild A, mit dem Anteil der CAM-Masse auf N, auf dem
+Danach HiResCAM für genau diese Anker (Ziel: Logits der Referenz-Bins)
+auf dem Referenzbild und auf den Bildern A, B, C, E und F, mit dem Anteil der CAM-Masse auf N, auf dem
 sichtbaren und auf dem verdeckten Teil von T.
 
 Aufruf:  .venv/bin/python experiments/01_first_look.py --frame 0 --lane 1 --neighbor 2 [--model bev_2026]
@@ -26,7 +28,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from xai_lane import paths
-from xai_lane.experiment import SkipFrame, default_layer, run_frame
+from xai_lane.experiment import ALL_CONDITIONS, SkipFrame, default_layer, run_frame
 from xai_lane.model_loader import load_model
 from xai_lane.preprocess import load_gray, to_model_rgb
 
@@ -53,7 +55,8 @@ def main() -> None:
     images = sorted(paths.TEST_IMAGE_DIR.glob("*.jpg"))
     rgb = to_model_rgb(load_gray(images[args.frame]), cfg.train_width, cfg.train_height)
     try:
-        res = run_frame(net, cfg, rgb, T, N, args.span, args.fill, args.thickness, args.layer)
+        res = run_frame(net, cfg, rgb, T, N, args.span, args.fill, args.thickness, args.layer,
+                        cam_images=("0", "A", "B", "C", "E", "F"), conditions=ALL_CONDITIONS)
     except SkipFrame:
         raise SystemExit("T hat im gewählten Bereich keine Punkte oder N wird nicht erkannt.")
     args.layer = args.layer or default_layer(cfg)
@@ -75,7 +78,7 @@ def main() -> None:
     stem = f"frame{args.frame:05d}_T{T}_N{N}_{args.fill}_{args.layer}"
     if tuple(args.span) != (0.35, 0.65):  # nur abweichende Bereiche im Namen, Standardnamen bleiben gleich
         stem += f"_span{args.span[0] * 100:.0f}-{args.span[1] * 100:.0f}"
-    fig, axes = plt.subplots(2, 5, figsize=(20, 7.5))
+    fig, axes = plt.subplots(2, 7, figsize=(28, 7.5))
     for ax, (name, img) in zip(axes[0], res.imgs.items()):
         ax.imshow(img)
         for lane, pts in enumerate(res.preds[name]):
@@ -90,12 +93,12 @@ def main() -> None:
         ax.contour(m_hidden, levels=[0.5], colors="magenta", linewidths=0.7)
         s = cam_table.loc[(img_name, method)]
         ax.set_title(f"{method} auf {img_name}: N={s.N_Anteil:.2f}, T_vis={s.T_sichtbar_Anteil:.2f}")
-    axes[1, 4].axis("off")
-    axes[1, 4].text(0, 0.5, "weiß: Maske N\nmagenta: verdecktes Stück von T\n"
+    axes[1, 6].axis("off")
+    axes[1, 6].text(0, 0.5, "weiß: Maske N\nmagenta: verdecktes Stück von T\n"
                     "weiß gestrichelt: Referenzposition T", fontsize=11, va="center")
     for ax in axes[0]:
         ax.axis("off")
-    for ax in axes[1, :4]:
+    for ax in axes[1, :6]:
         ax.axis("off")
     fig.suptitle(f"{args.model}: {images[args.frame].name} – T={LANE_NAMES[T]}, N={LANE_NAMES[N]}")
     fig.tight_layout()

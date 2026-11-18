@@ -42,27 +42,49 @@ FIGURES = [
 ]
 
 
-def batch_chart(out) -> None:
-    s = pd.read_csv(paths.results_dir("bev") / "02_batch" / "zusammenfassung.csv")
+MODEL_TITLES = {"bev": "altes Modell bev (128×96)", "bev_2026": "2026er-Modell bev_2026 (512×384)"}
+
+
+def _batch_bars(ax, model) -> None:
+    s = pd.read_csv(paths.results_dir(model) / "02_batch" / "zusammenfassung.csv")
     s = s[s.Fuellung == "inpaint"].reset_index(drop=True)
     groups = [f"{LANE_NAMES[t]} ← {LANE_NAMES[n]}" for t, n in zip(s["T"], s.N)]
-    fig, ax = plt.subplots(figsize=(9, 4.2))
     width = 0.2
     for i, c in enumerate("ABCD"):
         x = [g + (i - 1.5) * (width + 0.01) for g in range(len(s))]
         ax.bar(x, s[f"dx_{c}_median_pct"], width, color=COLORS[c], label=LABELS[c], edgecolor="#fcfcfb", linewidth=2)
-    ax.set_xticks(range(len(s)), [f"T = {g}" for g in groups])
-    ax.set_ylabel("Verschiebung von T im gestörten Stück\n(Median, % der Bildbreite)", color="#52514e")
-    ax.set_title("best_model_bev.pth, 60 Bilder, Füllung inpaint", color="#0b0b0b", loc="left")
+    ax.set_xticks(range(len(s)), groups)
+    ax.set_xlabel("Ziellinie T ← weggenommener Nachbar N", color="#52514e")
+    ax.set_title(f"{MODEL_TITLES[model]}, {s.n_Bilder.min()}–{s.n_Bilder.max()} Bilder je Paar",
+                 color="#0b0b0b", loc="left")
     ax.grid(axis="y", color="#e4e3df", linewidth=0.8)
     ax.set_axisbelow(True)
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
     ax.tick_params(colors="#52514e", length=0)
-    ax.legend(frameon=False, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.12))
-    fig.patch.set_facecolor("#fcfcfb")
     ax.set_facecolor("#fcfcfb")
+
+
+def batch_chart(out, model="bev") -> None:
+    fig, ax = plt.subplots(figsize=(9, 4.2))
+    _batch_bars(ax, model)
+    ax.set_ylabel("Verschiebung von T im gestörten Stück\n(Median, % der Bildbreite)", color="#52514e")
+    ax.legend(frameon=False, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.2))
+    fig.patch.set_facecolor("#fcfcfb")
     fig.tight_layout()
+    fig.savefig(out, dpi=120)
+
+
+def vergleich_chart(out) -> None:
+    """Beide Modelle nebeneinander mit gleicher y-Achse, damit die Größenordnung vergleichbar ist."""
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    for ax, model in zip(axes, ("bev", "bev_2026")):
+        _batch_bars(ax, model)
+    axes[0].set_ylabel("Verschiebung von T im gestörten Stück\n(Median, % der Bildbreite)", color="#52514e")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, ncol=4, loc="lower center")
+    fig.patch.set_facecolor("#fcfcfb")
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.savefig(out, dpi=120)
 
 
@@ -76,7 +98,9 @@ def main() -> None:
     masks = paths.results_dir("bev") / "erklaerung" / "frame00600_masken_links.png"
     if masks.exists():
         shutil.copy(masks, DOCS / "masken_frame600.png")
-    batch_chart(DOCS / "batch_bev_inpaint.png")
+    batch_chart(DOCS / "batch_bev_inpaint.png", "bev")
+    batch_chart(DOCS / "batch_bev_2026_inpaint.png", "bev_2026")
+    vergleich_chart(DOCS / "vergleich_modelle_inpaint.png")
     print(f"Bilder in {DOCS}")
 
 

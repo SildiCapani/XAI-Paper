@@ -6,19 +6,16 @@ __pycache__/
 results/*
 !results/.gitkeep
 # LaTeX-Hilfsdateien
-paper/*.aux
-paper/*.log
-paper/*.out
-paper/*.toc
-paper/*.bbl
-paper/*.blg
-paper/*.fls
-paper/*.fdb_latexmk
-paper/*.synctex.gz
-paper/main.pdf
+paper/*
 experiments/interaktiv.ipynb
 # selbst trainierte Gewichte (groß, nicht ins git)
 models/*.pth
 
 #Lernpfad
 lernen/*
+
+docs/belege/*
+
+docs/lernskript/*
+
+training/*

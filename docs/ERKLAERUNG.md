@@ -8,8 +8,8 @@ Bilder liest und was bisher herausgekommen ist. Alle Bilder hier erzeugt
 verdeckte Linie zu erkennen?
 
 **Idee:** Wir verdecken gezielt einzelne Markierungen und schauen, wie sich die Vorhersage ändert.
-Danach prüfen wir mit Grad-CAM und HiResCAM, ob die Erklärungsverfahren dieselben Bildbereiche
-als wichtig zeigen.
+Danach prüfen wir mit HiResCAM, ob das Erklärungsverfahren dieselben Bildbereiche als wichtig zeigt.
+(Anfangs lief Grad-CAM zum Vergleich mit. Warum es rausgeflogen ist: [PROTOKOLL.md](PROTOKOLL.md).)
 
 ---
 
@@ -148,7 +148,8 @@ Originalbild (0) und auf Bild A.
 - **Weiß** umrandet ist die Nachbarlinie N, **magenta** das verdeckte Stück von T.
 - `N=0.02` heißt: 2 % der gesamten Karte liegen auf der Nachbarlinie.
 
-**Grad-CAM gegen HiResCAM:**
+**Grad-CAM gegen HiResCAM** (die Bilder hier stammen noch aus der Zeit, als beide liefen; seit 2026-11-13 rechnet
+der Code nur noch HiResCAM, siehe [PROTOKOLL.md](PROTOKOLL.md)):
 - **Grad-CAM** mittelt die Gradienten eines Kanals über das ganze Bild und gewichtet damit den Kanal.
 - **HiResCAM** verrechnet Gradient und Aktivierung Zelle für Zelle.
 

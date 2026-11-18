@@ -6,8 +6,9 @@ Vergleich mit dem älteren `best_model_bev.pth` mit 128×96, Auswahl per `--mode
 Nutzt das Modell benachbarte Fahrbahnmarkierungen, um eine teilweise verdeckte
 Linie zu erkennen?
 
-Methoden: gezielte Verdeckungsexperimente (Bedingungen A–F) und Grad-CAM vs.
-HiResCAM, danach Abgleich der Erklärungen mit den Experimenten. Kein Neutraining.
+Methoden: gezielte Verdeckungsexperimente (Bedingungen A–F) und HiResCAM, danach Abgleich
+der Erklärungen mit den Experimenten. Kein Neutraining. Grad-CAM wurde anfangs mitverglichen
+und dann verworfen, siehe [docs/PROTOKOLL.md](docs/PROTOKOLL.md).
 
 **Erklärung mit Bildern:** [docs/ERKLAERUNG.md](docs/ERKLAERUNG.md) – wie das Experiment funktioniert,
 wie man die Abbildungen liest, bisherige Ergebnisse und alle Befehle.
