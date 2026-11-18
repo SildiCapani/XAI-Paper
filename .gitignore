@@ -1,0 +1,19 @@
+# Python-Umgebung und Build-Reste
+.venv/
+__pycache__/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Ergebnisse werden von den Skripten erzeugt, jederzeit reproduzierbar
+results/*
+!results/.gitkeep
+
+# Notebook nur zum Ausprobieren
+experiments/interaktiv.ipynb
+
+# selbst trainierte Gewichte (groß, nicht ins git)
+models/*.pth
+
+# Lernpfad und Lernskript (nur für mich)
+lernen/*
+docs/lernskript/*
