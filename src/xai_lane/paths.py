@@ -40,7 +40,6 @@ RESULTS_ROOT = PROJECT_ROOT / "results"
 def results_dir(model: str) -> Path:
     """Ergebnisse je Modell getrennt: results/<modell>/..."""
     return RESULTS_ROOT / model
-FIGURES_DIR = PROJECT_ROOT / "paper" / "figures"
 
 
 def add_lane_detection_to_path() -> None:
