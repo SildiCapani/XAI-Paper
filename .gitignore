@@ -17,3 +17,6 @@ models/*.pth
 # Lernpfad und Lernskript (nur für mich)
 lernen/*
 docs/lernskript/*
+
+# Präsentation (nur lokal)
+presentation/

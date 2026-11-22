@@ -23,7 +23,7 @@ from xai_lane.occlusion import fill, polyline_mask
 from xai_lane.preprocess import to_tensor
 
 CONDITIONS = ("0", "E", "F")
-CAM_METHODS = ("hirescam",)  # Grad-CAM entfernt, siehe docs/PROTOKOLL.md
+CAM_METHODS = ("hirescam",)  # Grad-CAM entfernt, Begründung im README
 
 
 @dataclass

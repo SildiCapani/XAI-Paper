@@ -1,32 +1,56 @@
 # XAI-Projekt: Nutzt die Spurerkennung benachbarte Markierungen?
 
-Projekt für das Explainable-AI-Modul (Abgabe: Präsentation + Code). Untersucht wird die UFLDv2-Spurerkennung des
-DHBW-Smart-Rollerz-Teams (ResNet-„9“; Standard `best_model_bev_2026.pth` mit Eingabe 512×384,
-Vergleich mit dem älteren `best_model_bev.pth` mit 128×96, Auswahl per `--model bev_2026|bev`):
-Nutzt das Modell benachbarte Fahrbahnmarkierungen, um eine teilweise verdeckte
-Linie zu erkennen?
+Projekt für das Explainable-AI-Modul (Abgabe: Präsentation + Code). Untersucht wird die
+UFLDv2-Spurerkennung des DHBW-Smart-Rollerz-Teams (ResNet-„9“, `best_model_bev_2026.pth`,
+Eingabe 512×384, drei Linien: links, Mitte, rechts).
 
-Methoden: gezielte Verdeckungsexperimente (Bedingungen A–F) und HiResCAM, danach Abgleich
-der Erklärungen mit den Experimenten. Kein Neutraining. Grad-CAM wurde anfangs mitverglichen
-und dann verworfen, siehe [docs/PROTOKOLL.md](docs/PROTOKOLL.md).
+**Frage:** Fehlt eine Fahrbahnlinie ganz, orientiert sich das Modell dann an der Nachbarlinie?
 
-**Erklärung mit Bildern:** [docs/ERKLAERUNG.md](docs/ERKLAERUNG.md) – wie das Experiment funktioniert,
-wie man die Abbildungen liest, bisherige Ergebnisse und alle Befehle.
+**Vorgehen:** Für eine Ziellinie T und eine Nachbarlinie N wird die Linie im Bild weggenommen
+(Inpainting entlang der vorhergesagten Linie) und neu vorhergesagt:
+
+| Bedingung | Was fehlt |
+|---|---|
+| 0 | nichts (Referenz) |
+| E | T ganz |
+| F | T und N ganz |
+
+Gemessen wird an den mittleren Zeilenankern (35–65 %, beim 2026er-Modell Anker 19–34), wie weit
+sich T verschiebt. Ist F deutlich schlechter als E, hat das Modell N benutzt. Dazu zeigt HiResCAM,
+welche Bildstellen T an der alten Stelle halten, und es wird geprüft, ob die Heatmap pro Bild zum
+gemessenen Effekt passt (Spearman). Grad-CAM wurde anfangs mitverglichen und verworfen: Es mittelt
+den Gradienten über alle Stellen, beim vollverbundenen Kopf von UFLDv2 ist der Gradient aber je
+Stelle verschieden. Kein Neutraining.
+
+Was von uns ist und was übernommen wurde: [docs/HERKUNFT.md](docs/HERKUNFT.md).
 
 ## Struktur
 
 | Ordner | Inhalt |
 |---|---|
-| `src/xai_lane/` | eigener Code (Loader, Vorverarbeitung, Verdeckung, CAM, Analyse) |
-| `experiments/` | ausführbare Skripte/Notebooks, nummeriert nach Schritt |
-| `results/<modell>/` | erzeugte Ausgaben je Modell (nicht im git, jederzeit reproduzierbar) |
-| `docs/` | Erklärung mit Bildern (`ERKLAERUNG.md`, Bilder in `docs/bilder/`), Entscheidungen (`PROTOKOLL.md`), Zahlen-Belege als CSV (`docs/belege/`) |
-| `presentation/` | Folien für die Abgabe |
-| `training/` | Fine-Tuning mit Linien-Verdeckung auf dem DGX: Patch für das Team-Repo und Schritt-für-Schritt-Anleitung (`DGX_ANLEITUNG.md`) |
-| `models/` | selbst trainierte Gewichte vom DGX (nicht im git), Auswahl per `--model bev_2026_kontrolle` / `bev_2026_verdeckung` |
+| `src/xai_lane/` | eigener Code: Pfade, Modell laden, Vorverarbeitung, Dekodieren, Verdecken, HiResCAM, Experiment (`run_frame`) |
+| `experiments/` | ausführbare Skripte, nummeriert nach Schritt |
+| `docs/` | Herkunft des Codes, Folienbilder in `docs/bilder/praesi/` |
+| `results/<modell>/` | erzeugte Ausgaben (nicht im git, jederzeit reproduzierbar) |
 
-Modell, Config, Testbilder und Modellcode werden **nur lesend** per absolutem Pfad
-aus `~/Documents/smarty_workspace/src/lane_detection_ai` verwendet
+## Skripte
+
+| Skript | Was es macht |
+|---|---|
+| `00_check_setup.py` | Modell lädt mit `strict=True`, Ausgabeformen, Gradienten an layer4 |
+| `01_first_look.py` | ein Bild: Bedingungen 0, E, F und Heatmaps |
+| `02_batch.py` | Hauptexperiment über viele Bilder und alle Linienpaare, Wilcoxon-Test und Spearman |
+| `07_sanity_check.py` | Sanity Check nach Adebayo et al. 2018: Gewichte schrittweise zufällig, Heatmap muss zerfallen |
+| `08_praesi_bilder.py` | Bilder für die Folien (braucht vorher einen Lauf von `02_batch.py`) |
+
+Häufige Optionen: `--model bev_2026|bev`, `--lane` / `--neighbor` (0 links, 1 Mitte, 2 rechts),
+`--fill inpaint|median|blendung`. `02_batch.py --step 20` dauert mit `bev_2026` auf der CPU etwa
+eine Stunde und lässt sich mit `--resume` fortsetzen.
+
+## Modell und Daten
+
+Modell, Config, Testbilder und Modellcode gehören dem Team und sind **nicht** in diesem Repo. Sie
+werden nur lesend aus `~/Documents/smarty_workspace/src/lane_detection_ai` verwendet
 (siehe `src/xai_lane/paths.py`, überschreibbar mit `LANE_DETECTION_ROOT`).
 
 ## Setup
@@ -39,9 +63,11 @@ python3.12 -m venv .venv
 .venv/bin/python experiments/00_check_setup.py
 ```
 
-## Offene Punkte (mit dem Team klären)
+## Grenzen
 
-- Config nennt Originalgröße 1364×944, die Testbilder sind 800×640.
-- `row_anchor` in `get_config` (`linspace(100, 1540, num_row) / 1550`) ist evtl.
-  nicht die Formel aus dem Training – wichtig für die Zuordnung Anker-Zeile ↔ Bildzeile.
-- Trainingscode (Lightning/Optuna) und Labels liegen nicht im Repo.
+- Keine Labels: Die Referenz ist die Vorhersage auf dem Originalbild. Gemessen wird, wie stark sich
+  das Modell ändert, nicht, wie richtig es ist.
+- Die Masken folgen den Vorhersagen. Wo eine Linie nur geraten ist (oft links), wird keine echte
+  Markierung übermalt.
+- Die Formel der Zeilenanker (`linspace(100, 1540, num_row) / 1550`) stammt aus der Config und ist
+  nicht mit dem Trainingscode abgeglichen.
