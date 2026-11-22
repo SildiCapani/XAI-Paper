@@ -22,15 +22,13 @@ gemessenen Effekt passt (Spearman). Grad-CAM wurde anfangs mitverglichen und ver
 den Gradienten über alle Stellen, beim vollverbundenen Kopf von UFLDv2 ist der Gradient aber je
 Stelle verschieden. Kein Neutraining.
 
-Was von uns ist und was übernommen wurde: [docs/HERKUNFT.md](docs/HERKUNFT.md).
-
 ## Struktur
 
 | Ordner | Inhalt |
 |---|---|
 | `src/xai_lane/` | eigener Code: Pfade, Modell laden, Vorverarbeitung, Dekodieren, Verdecken, HiResCAM, Experiment (`run_frame`) |
 | `experiments/` | ausführbare Skripte, nummeriert nach Schritt |
-| `docs/` | Herkunft des Codes, Folienbilder in `docs/bilder/praesi/` |
+| `docs/` | Folienbilder in `docs/bilder/praesi/` |
 | `results/<modell>/` | erzeugte Ausgaben (nicht im git, jederzeit reproduzierbar) |
 
 ## Skripte
