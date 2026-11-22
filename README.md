@@ -4,6 +4,17 @@ Projekt für das Explainable-AI-Modul (Abgabe: Präsentation + Code). Untersucht
 UFLDv2-Spurerkennung des DHBW-Smart-Rollerz-Teams (ResNet-„9“, `best_model_bev_2026.pth`,
 Eingabe 512×384, drei Linien: links, Mitte, rechts).
 
+## Gruppe
+
+| Name | Matr.-Nr. | E-Mail |
+|---|---|---|
+| Brisild Capani | 1962455 | inf24039@lehre.dhbw-stuttgart.de |
+
+- GitHub: https://github.com/SildiCapani/XAI-Paper
+- Datensatz: Testfahrt `eval_2025-03-06` (1192 BEV-Bilder) und Modellgewichte des Smart-Rollerz-Teams.
+  Sie liegen auf dem NAS des Teams und sind zu groß für einen öffentlichen Link. Zugang bitte per
+  E-Mail an inf24039@lehre.dhbw-stuttgart.de anfragen, dann stelle ich sie bereit.
+
 **Frage:** Fehlt eine Fahrbahnlinie ganz, orientiert sich das Modell dann an der Nachbarlinie?
 
 **Vorgehen:** Für eine Ziellinie T und eine Nachbarlinie N wird die Linie im Bild weggenommen
